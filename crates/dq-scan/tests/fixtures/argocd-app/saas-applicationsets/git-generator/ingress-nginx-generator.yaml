@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: git@github.com:akeylesslabs/akeyless-environments.git
+        revision: master
+        files:
+          - path: "environments/akeyless_global/**/AZR/argocd/**/config.json"
+          - path: "environments/cvs/staging/AZR/argocd/**/config.json"
+  template:
+    metadata:
+      name: 'ingress-nginx-{{cluster.name}}'
+      labels:
+        application: 'ingress-nginx'
+        region: '{{region}}'
+        cloudProvider: '{{cloudProvider}}'
+        tenant: '{{tenant}}'
+        environment: '{{environment}}'
+    spec:
+      project: '{{project}}'
+      source:
+        repoURL: git@github.com:akeylesslabs/akeyless-environments.git
+        targetRevision: master
+        path: saas/kubernetes/helm/ingress-nginx
+        helm:
+          valueFiles:
+            - '../../../../environments/{{tenant}}/{{environment}}/{{cloudProvider}}/helm_values_files/{{region}}/ingress-nginx.yaml'
+      destination:
+        server: '{{cluster.url}}'
+        namespace: 'saas-ingress-nginx'
+  syncPolicy:
+    preserveResourcesOnDeletion: true

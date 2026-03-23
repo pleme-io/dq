@@ -1,0 +1,13 @@
+[package]
+name = "dq-merge"
+description = "Deep merge, patch, diff, and flatten operations on dq Values"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+dq-core = { path = "../dq-core" }
+indexmap = { workspace = true }
+serde_json = { workspace = true }
+json-patch = { workspace = true }
+serde = { workspace = true }

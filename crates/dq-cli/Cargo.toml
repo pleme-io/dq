@@ -1,0 +1,21 @@
+[package]
+name = "dq-cli"
+description = "Universal infrastructure data query tool"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "dq"
+path = "src/main.rs"
+
+[dependencies]
+dq-core = { path = "../dq-core" }
+dq-formats = { path = "../dq-formats" }
+dq-query = { path = "../dq-query" }
+dq-merge = { path = "../dq-merge" }
+dq-terragrunt = { path = "../dq-terragrunt" }
+dq-scan = { path = "../dq-scan" }
+clap = { workspace = true }
+anyhow = { workspace = true }
+serde_json = { workspace = true }

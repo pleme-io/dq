@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: saas-v2
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - clusters:
+        selector:
+          matchExpressions:
+            - key: saas
+              operator: Exists
+            - key: tenant
+              operator: NotIn
+              values: ["walmart"]
+  template:
+    metadata:
+      name: '{{ normalize .name }}-v2'
+      labels:
+        application: 'saas'
+        region: '{{.metadata.labels.region}}'
+        cloudProvider: '{{.metadata.labels.cloudProvider}}'
+        tenant: '{{.metadata.labels.tenant}}'
+        environment: '{{.metadata.labels.environment}}'
+    spec:
+      project: '{{.metadata.labels.project}}'
+      source:
+        repoURL: git@github.com:akeylesslabs/akeyless-environments.git
+        targetRevision: master
+        path: saas/kubernetes/helm/saas
+        helm:
+          releaseName: '{{ normalize .name }}'
+          parameters:
+            - name: tenant
+              value: "{{.metadata.labels.tenant}}"
+          valueFiles:
+            - '../../../../environments/{{.metadata.labels.tenant}}/{{.metadata.labels.environment}}/{{.metadata.labels.cloudProvider}}/helm_values_files/{{.metadata.labels.region}}/{{lower .metadata.labels.cloudProvider}}-saas-values.yaml'
+            - '../../../../environments/{{.metadata.labels.tenant}}/{{.metadata.labels.environment}}/{{.metadata.labels.cloudProvider}}/helm_values_files/{{lower .metadata.labels.cloudProvider}}-saas-image-values.yaml'
+      destination:
+        server: '{{.server}}'
+        namespace: '{{.metadata.labels.namespace}}'
+  syncPolicy:
+    preserveResourcesOnDeletion: true
