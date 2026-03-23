@@ -1,0 +1,17 @@
+[package]
+name = "dq-query"
+description = "jq query engine for dq Values via jaq"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+dq-core = { path = "../dq-core" }
+serde_json = { workspace = true }
+
+jaq-core = { workspace = true }
+jaq-std = { workspace = true }
+jaq-json = { workspace = true }
+
+[dev-dependencies]
+indexmap = { workspace = true }
