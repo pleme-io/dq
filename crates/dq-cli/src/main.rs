@@ -193,6 +193,16 @@ enum ScanCommands {
         #[arg(short = 't', long = "to", default_value = "json")]
         format: String,
     },
+
+    /// Generate static HTML visualizations of the scanned topology
+    Viz {
+        /// Repository root directory
+        #[arg(default_value = ".")]
+        root: PathBuf,
+        /// Output directory for generated HTML files
+        #[arg(short, long, default_value = "docs/dq-scans/viz")]
+        output_dir: PathBuf,
+    },
 }
 
 fn main() -> Result<()> {
@@ -408,6 +418,18 @@ fn cmd_scan(command: ScanCommands) -> Result<()> {
                 }
                 other => anyhow::bail!("unsupported format: {other} (use json, dot, or summary)"),
             }
+            Ok(())
+        }
+        ScanCommands::Viz { root, output_dir } => {
+            let generated = dq_viz::generate_all(&root, &output_dir)?;
+            for f in &generated {
+                eprintln!("  generated: {f}");
+            }
+            eprintln!(
+                "Wrote {} files to {}",
+                generated.len() + 1, // +1 for index.html
+                output_dir.display()
+            );
             Ok(())
         }
     }

@@ -16,6 +16,7 @@ dq-query = { path = "../dq-query" }
 dq-merge = { path = "../dq-merge" }
 dq-terragrunt = { path = "../dq-terragrunt" }
 dq-scan = { path = "../dq-scan" }
+dq-viz = { path = "../dq-viz" }
 clap = { workspace = true }
 anyhow = { workspace = true }
 serde_json = { workspace = true }

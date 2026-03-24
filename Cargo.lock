@@ -242,6 +242,7 @@ dependencies = [
  "dq-query",
  "dq-scan",
  "dq-terragrunt",
+ "dq-viz",
  "serde_json",
 ]
 
@@ -323,6 +324,17 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "dq-viz"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dq-core",
+ "dq-scan",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
