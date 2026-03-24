@@ -194,14 +194,17 @@ enum ScanCommands {
         format: String,
     },
 
-    /// Generate static HTML visualizations of the scanned topology
+    /// Generate static visualizations of the scanned topology
     Viz {
         /// Repository root directory
         #[arg(default_value = ".")]
         root: PathBuf,
-        /// Output directory for generated HTML files
+        /// Output directory for generated files
         #[arg(short, long, default_value = "docs/dq-scans/viz")]
         output_dir: PathBuf,
+        /// Output format: html or mermaid (GitHub-friendly markdown)
+        #[arg(short, long, default_value = "html")]
+        format: String,
     },
 }
 
@@ -420,14 +423,18 @@ fn cmd_scan(command: ScanCommands) -> Result<()> {
             }
             Ok(())
         }
-        ScanCommands::Viz { root, output_dir } => {
-            let generated = dq_viz::generate_all(&root, &output_dir)?;
+        ScanCommands::Viz { root, output_dir, format } => {
+            let generated = match format.as_str() {
+                "mermaid" | "md" | "markdown" => dq_viz::generate_all_mermaid(&root, &output_dir)?,
+                _ => dq_viz::generate_all(&root, &output_dir)?,
+            };
             for f in &generated {
                 eprintln!("  generated: {f}");
             }
+            let extra = if format == "html" { 1 } else { 0 }; // +1 for index.html in html mode
             eprintln!(
                 "Wrote {} files to {}",
-                generated.len() + 1, // +1 for index.html
+                generated.len() + extra,
                 output_dir.display()
             );
             Ok(())

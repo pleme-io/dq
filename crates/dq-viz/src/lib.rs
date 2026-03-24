@@ -16,6 +16,7 @@ pub mod deploy_graph;
 mod html;
 pub mod index;
 pub mod matrix;
+pub mod mermaid;
 
 use std::path::Path;
 
@@ -64,4 +65,34 @@ pub fn generate_all(root: &Path, output_dir: &Path) -> Result<Vec<String>> {
     let result = dq_scan::scan_directory(root)
         .map_err(|e| anyhow::anyhow!("{e}"))?;
     generate_from_topology(&result.topology, output_dir)
+}
+
+/// Generate all visualizations as GitHub-friendly Markdown with Mermaid diagrams.
+pub fn generate_all_mermaid(root: &Path, output_dir: &Path) -> Result<Vec<String>> {
+    let result = dq_scan::scan_directory(root)
+        .map_err(|e| anyhow::anyhow!("{e}"))?;
+    generate_mermaid_from_topology(&result.topology, output_dir)
+}
+
+/// Generate Mermaid/Markdown visualizations from a pre-built topology.
+///
+/// Writes Markdown files with embedded Mermaid diagrams into `output_dir`
+/// and returns the list of filenames generated.
+pub fn generate_mermaid_from_topology(topology: &Topology, output_dir: &Path) -> Result<Vec<String>> {
+    std::fs::create_dir_all(output_dir)?;
+    let mut generated = Vec::new();
+
+    let content = mermaid::matrix(topology);
+    std::fs::write(output_dir.join("matrix.md"), &content)?;
+    generated.push("matrix.md".to_string());
+
+    let content = mermaid::deploy_graph(topology);
+    std::fs::write(output_dir.join("deploy-graph.md"), &content)?;
+    generated.push("deploy-graph.md".to_string());
+
+    let content = mermaid::chart_deps(topology);
+    std::fs::write(output_dir.join("chart-deps.md"), &content)?;
+    generated.push("chart-deps.md".to_string());
+
+    Ok(generated)
 }
