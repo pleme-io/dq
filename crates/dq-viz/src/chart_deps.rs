@@ -62,6 +62,7 @@ pub fn render(topology: &Topology) -> Result<String> {
         body.push_str("<div class=\"section\">\n");
         body.push_str("<h3>Charts with dependencies</h3>\n");
         for parent_name in &charts_with_deps {
+            let mut visited = BTreeSet::new();
             render_chart_tree(
                 &mut body,
                 parent_name,
@@ -69,6 +70,7 @@ pub fn render(topology: &Topology) -> Result<String> {
                 &chart_map,
                 topology,
                 0,
+                &mut visited,
             );
         }
         body.push_str("</div>\n");
@@ -122,7 +124,17 @@ fn render_chart_tree(
     chart_map: &BTreeMap<&str, &ChartInfo>,
     topology: &Topology,
     depth: usize,
+    visited: &mut BTreeSet<String>,
 ) {
+    if !visited.insert(name.to_string()) {
+        body.push_str(&format!(
+            "<div class=\"tree-node depth-{}\"><span class=\"connector\">&#x251C;&#x2500;</span><span class=\"chart-name external\">{}</span> <span class=\"external-tag\">cycle</span></div>\n",
+            depth.min(4),
+            html::escape(name),
+        ));
+        return;
+    }
+
     let indent_class = format!("depth-{}", depth.min(4));
 
     if let Some(info) = chart_map.get(name) {
@@ -163,7 +175,7 @@ fn render_chart_tree(
     // Recurse into children
     if let Some(children) = parent_to_children.get(name) {
         for child in children {
-            render_chart_tree(body, child, parent_to_children, chart_map, topology, depth + 1);
+            render_chart_tree(body, child, parent_to_children, chart_map, topology, depth + 1, visited);
         }
     }
 }
