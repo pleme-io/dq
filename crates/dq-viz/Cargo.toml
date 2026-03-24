@@ -1,0 +1,13 @@
+[package]
+name = "dq-viz"
+description = "Static HTML visualization generator for dq scan topology data"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+dq-scan = { path = "../dq-scan" }
+dq-core = { path = "../dq-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
