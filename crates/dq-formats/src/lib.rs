@@ -10,8 +10,6 @@ pub mod toml_fmt;
 pub mod hcl;
 pub mod csv_fmt;
 pub mod msgpack;
-#[cfg(feature = "lisp")]
-pub mod lisp;
 
 use dq_core::{Error, Value};
 
@@ -24,11 +22,6 @@ pub enum FormatKind {
     Hcl,
     Csv,
     MsgPack,
-    /// Canonical tatara-lisp s-expression form. Available when the
-    /// crate is built with the ``lisp`` feature. Round-trips with
-    /// JSON/YAML/etc via tatara-lisp's ``sexp_to_json`` / ``json_to_sexp``
-    /// symmetric pair.
-    Lisp,
 }
 
 impl FormatKind {
@@ -41,7 +34,6 @@ impl FormatKind {
             FormatKind::Hcl => &["hcl", "tf", "tfvars"],
             FormatKind::Csv => &["csv", "tsv"],
             FormatKind::MsgPack => &["msgpack", "mp"],
-            FormatKind::Lisp => &["lisp", "lsp", "sexp"],
         }
     }
 
@@ -53,7 +45,6 @@ impl FormatKind {
             FormatKind::Hcl => "hcl",
             FormatKind::Csv => "csv",
             FormatKind::MsgPack => "msgpack",
-            FormatKind::Lisp => "lisp",
         }
     }
 
@@ -66,7 +57,6 @@ impl FormatKind {
             "hcl" | "tf" | "tfvars" | "terragrunt" => Some(FormatKind::Hcl),
             "csv" | "tsv" => Some(FormatKind::Csv),
             "msgpack" | "mp" | "messagepack" => Some(FormatKind::MsgPack),
-            "lisp" | "lsp" | "sexp" | "s-expr" | "s-expression" => Some(FormatKind::Lisp),
             _ => None,
         }
     }
@@ -90,12 +80,6 @@ pub fn parse(format: FormatKind, input: &[u8]) -> Result<Value, Error> {
         FormatKind::Hcl => hcl::HclFormat.parse(input),
         FormatKind::Csv => csv_fmt::CsvFormat.parse(input),
         FormatKind::MsgPack => msgpack::MsgPackFormat.parse(input),
-        #[cfg(feature = "lisp")]
-        FormatKind::Lisp => lisp::LispFormat.parse(input),
-        #[cfg(not(feature = "lisp"))]
-        FormatKind::Lisp => Err(Error::Format(
-            "Lisp format requires the `lisp` feature (tatara-lisp dep)".to_string(),
-        )),
     }
 }
 
@@ -108,12 +92,6 @@ pub fn serialize(format: FormatKind, value: &Value) -> Result<Vec<u8>, Error> {
         FormatKind::Hcl => hcl::HclFormat.serialize(value),
         FormatKind::Csv => csv_fmt::CsvFormat.serialize(value),
         FormatKind::MsgPack => msgpack::MsgPackFormat.serialize(value),
-        #[cfg(feature = "lisp")]
-        FormatKind::Lisp => lisp::LispFormat.serialize(value),
-        #[cfg(not(feature = "lisp"))]
-        FormatKind::Lisp => Err(Error::Format(
-            "Lisp format requires the `lisp` feature (tatara-lisp dep)".to_string(),
-        )),
     }
 }
 
