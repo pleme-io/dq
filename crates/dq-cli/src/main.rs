@@ -109,6 +109,25 @@ enum Commands {
         #[command(subcommand)]
         command: ScanCommands,
     },
+
+    /// Verify a Mermaid → Lisp digest matches a canonical topology.json.
+    ///
+    /// Closes the loop on the render path: `dq scan viz --format
+    /// mermaid` produces diagrams, an external tool digests those
+    /// diagrams back into a typed Lisp form, and this subcommand
+    /// cross-checks the digest against the topology the diagrams
+    /// claim to represent. Only compiled when the `lisp` feature is
+    /// enabled (it pulls shikumi + tatara-lisp through the Lisp
+    /// provider).
+    #[cfg(feature = "lisp")]
+    #[command(name = "verify-mermaid")]
+    VerifyMermaid {
+        /// Path to mermaid-digest.lisp (produced by the repo-document
+        /// skill or any other Mermaid → Lisp digester).
+        digest: PathBuf,
+        /// Path to the canonical topology.json to verify against.
+        topology: PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -219,9 +238,16 @@ fn main() -> Result<()> {
         Some(Commands::Convert { file, to_format }) => cmd_convert(&file, &to_format),
         Some(Commands::Terragrunt { command }) => cmd_terragrunt(command),
         Some(Commands::Scan { command }) => cmd_scan(command),
+        #[cfg(feature = "lisp")]
+        Some(Commands::VerifyMermaid { digest, topology }) => {
+            verify_mermaid::run(&digest, &topology)
+        }
         None => cmd_query(cli),
     }
 }
+
+#[cfg(feature = "lisp")]
+mod verify_mermaid;
 
 fn cmd_query(cli: Cli) -> Result<()> {
     let expr = cli.expression.as_deref().unwrap_or(".");
