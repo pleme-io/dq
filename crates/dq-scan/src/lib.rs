@@ -24,10 +24,12 @@ pub mod discovery;
 pub mod argocd;
 pub mod helm;
 pub mod environments;
+pub mod modules;
 pub mod topology;
 pub mod report;
 
 pub use config::ScanConfig;
+pub use modules::{scan_modules, TerraformModule};
 pub use topology::{Topology, ScanResult};
 
 use std::path::Path;

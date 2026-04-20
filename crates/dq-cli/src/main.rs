@@ -217,6 +217,16 @@ enum ScanCommands {
         format: String,
     },
 
+    /// List reusable Terraform modules under the configured root
+    /// (`terraform_modules_root` in `.dq.yaml`, defaults to
+    /// `saas/terraform/modules`). Each module reports its
+    /// resources / variables / outputs as parsed from its .tf files.
+    Modules {
+        /// Repository root directory
+        #[arg(default_value = ".")]
+        root: PathBuf,
+    },
+
     /// Generate static visualizations of the scanned topology
     Viz {
         /// Repository root directory
@@ -493,6 +503,14 @@ fn cmd_scan(command: ScanCommands) -> Result<()> {
                 }
                 other => anyhow::bail!("unsupported format: {other} (use json, dot, or summary)"),
             }
+            Ok(())
+        }
+        ScanCommands::Modules { root } => {
+            let config = dq_scan::ScanConfig::load_or_default(&root);
+            let modules = dq_scan::scan_modules(&root, &config);
+            let value = dq_scan::modules::modules_to_value(&modules);
+            let output = dq_formats::serialize(dq_formats::FormatKind::Json, &value)?;
+            std::io::Write::write_all(&mut std::io::stdout(), &output)?;
             Ok(())
         }
         ScanCommands::Viz { root, output_dir, format } => {

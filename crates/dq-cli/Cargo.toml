@@ -11,11 +11,16 @@ path = "src/main.rs"
 
 [features]
 default = []
-# Enables `dq verify-mermaid` — parses a Mermaid digest Lisp file via
-# shikumi's `lisp` provider, typed-deserializes it through serde, and
-# cross-checks it against a canonical topology.json. Off by default
-# because it pulls tatara-lisp through shikumi.
-lisp = ["shikumi/lisp", "dep:shikumi", "dep:serde", "dep:sha2"]
+# Enables `dq verify-mermaid` (via shikumi) AND first-class Lisp
+# format I/O in dq-formats (via tatara-lisp). Off by default because
+# both pull the tatara-lisp crate from the pleme-io monorepo.
+lisp = [
+    "shikumi/lisp",
+    "dq-formats/lisp",
+    "dep:shikumi",
+    "dep:serde",
+    "dep:sha2",
+]
 
 [dependencies]
 dq-core = { path = "../dq-core" }
