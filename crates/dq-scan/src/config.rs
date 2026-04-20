@@ -63,30 +63,75 @@ impl Default for ScanConfig {
 }
 
 impl ScanConfig {
-    /// Try to load a ScanConfig from `.dq.yaml` or `.dq.json` at the given root.
-    /// Falls back to default if no config file is found.
+    /// Try to load a ScanConfig from `.dq.yaml`, `.dq.yml`, `.dq.toml`,
+    /// `.dq.json`, or (with the `lisp` feature) `.dq.lisp` / `.dq.lsp`
+    /// at the given root. Falls back to default if no config file is found.
+    ///
+    /// Loading goes through shikumi's `ProviderChain`, layering
+    /// `Self::default()` at the bottom and the discovered file on top.
+    /// This matches the pleme-io standard and means consumers can add
+    /// env overrides (`DQ_SCAN_*`) by calling [`Self::load_layered`]
+    /// instead.
     pub fn load_or_default(root: &Path) -> Self {
-        // Try .dq.yaml first
-        let yaml_path = root.join(".dq.yaml");
-        if yaml_path.is_file() {
-            if let Ok(contents) = std::fs::read_to_string(&yaml_path) {
-                if let Ok(config) = serde_saphyr::from_str::<ScanConfig>(&contents) {
-                    return config;
+        Self::load_layered(root, None).unwrap_or_default()
+    }
+
+    /// Load a ScanConfig using shikumi's provider chain:
+    /// defaults → file (by extension) → optional env prefix.
+    ///
+    /// Returns `None` if no config file is found AND no env overrides
+    /// apply — caller can fall back to defaults.
+    pub fn load_layered(root: &Path, env_prefix: Option<&str>) -> Option<Self> {
+        // File extensions shikumi's auto-detection understands directly.
+        // JSON is handled separately below — shikumi routes `.json` to
+        // its TOML provider as a "conservative fallback" which doesn't
+        // match our historical `.dq.json` semantics.
+        let shikumi_candidates: &[&str] = &[
+            ".dq.yaml",
+            ".dq.yml",
+            ".dq.toml",
+            #[cfg(feature = "lisp")]
+            ".dq.lisp",
+            #[cfg(feature = "lisp")]
+            ".dq.lsp",
+        ];
+        for name in shikumi_candidates {
+            let path = root.join(name);
+            if path.is_file() {
+                let mut chain = shikumi::ProviderChain::new()
+                    .with_defaults(&Self::default())
+                    .with_file(&path);
+                if let Some(prefix) = env_prefix {
+                    chain = chain.with_env(prefix);
+                }
+                if let Ok(config) = chain.extract::<Self>() {
+                    return Some(config);
                 }
             }
         }
 
-        // Try .dq.json
+        // JSON fallback — kept for backwards compatibility.
         let json_path = root.join(".dq.json");
         if json_path.is_file() {
             if let Ok(contents) = std::fs::read_to_string(&json_path) {
-                if let Ok(config) = serde_json::from_str::<ScanConfig>(&contents) {
-                    return config;
+                if let Ok(config) = serde_json::from_str::<Self>(&contents) {
+                    return Some(config);
                 }
             }
         }
 
-        Self::default()
+        // No file found — the caller can still layer env-only overrides.
+        if let Some(prefix) = env_prefix {
+            let extracted: Result<Self, _> = shikumi::ProviderChain::new()
+                .with_defaults(&Self::default())
+                .with_env(prefix)
+                .extract();
+            if let Ok(config) = extracted {
+                return Some(config);
+            }
+        }
+
+        None
     }
 
     /// Build a set of extensions for pattern matching.
@@ -179,5 +224,75 @@ mod tests {
         assert_eq!(config.classify_env_dir("secrets"), "vault_secrets");
         assert_eq!(config.classify_env_dir("configs"), "service_config");
         assert_eq!(config.classify_env_dir("other"), "other");
+    }
+
+    #[test]
+    fn load_or_default_returns_default_when_no_file_present() {
+        let dir = tempfile::tempdir().unwrap();
+        let config = ScanConfig::load_or_default(dir.path());
+        assert_eq!(config.environments_dir, "environments");
+    }
+
+    #[test]
+    fn load_or_default_reads_dq_yaml() {
+        let dir = tempfile::tempdir().unwrap();
+        let yaml = r#"
+environments_dir: envs
+appset_dir_markers: [custom-gen]
+env_dir_type_map:
+  helm_values: helm_values
+  secrets: vault_secrets
+"#;
+        std::fs::write(dir.path().join(".dq.yaml"), yaml).unwrap();
+        let config = ScanConfig::load_or_default(dir.path());
+        assert_eq!(config.environments_dir, "envs");
+        assert_eq!(config.appset_dir_markers, vec!["custom-gen"]);
+        assert_eq!(config.classify_env_dir("secrets"), "vault_secrets");
+        // Defaults are preserved for fields the file didn't mention.
+        assert_eq!(config.chart_filename, "Chart.yaml");
+    }
+
+    #[test]
+    fn load_or_default_reads_dq_yml() {
+        let dir = tempfile::tempdir().unwrap();
+        let yml = "environments_dir: alt-envs\n";
+        std::fs::write(dir.path().join(".dq.yml"), yml).unwrap();
+        let config = ScanConfig::load_or_default(dir.path());
+        assert_eq!(config.environments_dir, "alt-envs");
+    }
+
+    #[test]
+    fn load_or_default_reads_dq_toml() {
+        let dir = tempfile::tempdir().unwrap();
+        let toml = "environments_dir = \"toml-envs\"\n";
+        std::fs::write(dir.path().join(".dq.toml"), toml).unwrap();
+        let config = ScanConfig::load_or_default(dir.path());
+        assert_eq!(config.environments_dir, "toml-envs");
+    }
+
+    #[test]
+    fn load_or_default_falls_back_to_dq_json() {
+        let dir = tempfile::tempdir().unwrap();
+        let json = r#"{"environments_dir": "json-envs"}"#;
+        std::fs::write(dir.path().join(".dq.json"), json).unwrap();
+        let config = ScanConfig::load_or_default(dir.path());
+        assert_eq!(config.environments_dir, "json-envs");
+    }
+
+    #[test]
+    fn yaml_takes_precedence_over_json_when_both_present() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(
+            dir.path().join(".dq.yaml"),
+            "environments_dir: from-yaml\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.path().join(".dq.json"),
+            r#"{"environments_dir": "from-json"}"#,
+        )
+        .unwrap();
+        let config = ScanConfig::load_or_default(dir.path());
+        assert_eq!(config.environments_dir, "from-yaml");
     }
 }
