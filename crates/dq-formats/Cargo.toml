@@ -5,6 +5,13 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[features]
+default = []
+# Pulls tatara-lisp for canonical s-expression IR emission / parsing
+# of dq Values. Off by default — tatara-lisp is a monorepo-local
+# crate; downstream consumers opt in when they need the Lisp surface.
+lisp = ["dep:tatara-lisp"]
+
 [dependencies]
 dq-core = { path = "../dq-core" }
 serde = { workspace = true }
@@ -16,3 +23,4 @@ csv = { workspace = true }
 rmp-serde = { workspace = true }
 indexmap = { workspace = true }
 base64 = "0.22"
+tatara-lisp = { git = "https://github.com/pleme-io/tatara-lisp", optional = true }

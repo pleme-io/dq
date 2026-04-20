@@ -36,6 +36,12 @@ pub struct ScanConfig {
 
     /// Filename pattern for ArgoCD cluster config (typically "config.json").
     pub argocd_config_filename: String,
+
+    /// Relative root (from the repo) for reusable Terraform modules
+    /// that ``dq scan modules`` walks. ``<root>/<cloud>/<module>/``
+    /// — each immediate child is a cloud bucket; each grandchild is
+    /// a module. Set to empty to disable the walk entirely.
+    pub terraform_modules_root: String,
 }
 
 impl Default for ScanConfig {
@@ -58,6 +64,7 @@ impl Default for ScanConfig {
             ]),
             argocd_config_dir: "argocd".to_string(),
             argocd_config_filename: "config.json".to_string(),
+            terraform_modules_root: "saas/terraform/modules".to_string(),
         }
     }
 }

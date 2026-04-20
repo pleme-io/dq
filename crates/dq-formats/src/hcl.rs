@@ -51,20 +51,27 @@ fn from_hcl_body(body: &hcl::Body) -> Value {
                     body: body_map,
                 });
 
+                // Always array. Every HCL block type lands as a list
+                // of blocks, even when the source file declares only
+                // one — callers iterate with `.[]` unconditionally.
+                // This is a breaking change relative to the old
+                // "smart" behaviour but eliminates the single-vs-many
+                // ambiguity every consumer had to paper over.
                 let key = block_type;
                 if let Some(existing) = map.get(&key) {
-                    match existing {
-                        Value::Array(arr) => {
-                            let mut new_arr = arr.as_ref().clone();
-                            new_arr.push(block_val);
-                            map.insert(key, Value::Array(Arc::new(new_arr)));
-                        }
-                        _ => {
-                            map.insert(key, Value::array(vec![existing.clone(), block_val]));
-                        }
+                    if let Value::Array(arr) = existing {
+                        let mut new_arr = arr.as_ref().clone();
+                        new_arr.push(block_val);
+                        map.insert(key, Value::Array(Arc::new(new_arr)));
+                    } else {
+                        // Defensive — this branch shouldn't fire now
+                        // that we always emit arrays, but keeps the
+                        // type system honest if a caller hand-inserts
+                        // a non-array value under a block-type key.
+                        map.insert(key, Value::array(vec![existing.clone(), block_val]));
                     }
                 } else {
-                    map.insert(key, block_val);
+                    map.insert(key, Value::array(vec![block_val]));
                 }
             }
         }
