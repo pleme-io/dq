@@ -5,6 +5,13 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[features]
+default = []
+# Enable `.dq.lisp` config files via shikumi's lisp feature. Off by
+# default because tatara-lisp is a monorepo-local crate; downstream
+# consumers of dq-scan opt in if they want Lisp configs.
+lisp = ["shikumi/lisp"]
+
 [dependencies]
 dq-core = { path = "../dq-core" }
 dq-formats = { path = "../dq-formats" }
@@ -12,7 +19,10 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 indexmap = { workspace = true }
 thiserror = { workspace = true }
-serde-saphyr = { workspace = true }
+# shikumi owns config discovery + provider chain for pleme-io. Wraps
+# figment + serde_saphyr; the single `with_file()` call auto-detects
+# YAML / TOML / Lisp / Nix by extension.
+shikumi = { git = "https://github.com/pleme-io/shikumi" }
 
 [dev-dependencies]
 tempfile = "3"
