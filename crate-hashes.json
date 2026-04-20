@@ -1,0 +1,5 @@
+{
+  "git+https://github.com/pleme-io/shikumi#0.1.0": "1zhg1j61yj5wg3l0v0b63s87jacjmm5x6bmv415fw0d5rslgkmlc",
+  "git+https://github.com/pleme-io/tatara#tatara-lisp-derive@0.2.0": "1pw61pgprhyn7gc2s7g6va9zv011z6a3z7gysm49g8njcs34jy6f",
+  "git+https://github.com/pleme-io/tatara#tatara-lisp@0.2.0": "1pw61pgprhyn7gc2s7g6va9zv011z6a3z7gysm49g8njcs34jy6f"
+}
