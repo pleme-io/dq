@@ -11,12 +11,13 @@ path = "src/main.rs"
 
 [features]
 default = []
-# Enables `dq verify-mermaid` (via shikumi) AND first-class Lisp
-# format I/O in dq-formats (via tatara-lisp). Off by default because
-# both pull the tatara-lisp crate from the pleme-io monorepo.
+# Enables `dq verify-mermaid` + `dq -t lisp` / `-f lisp` s-expression
+# I/O at the CLI layer. All tatara-lisp access flows through shikumi
+# (which already owns the lisp reader/ast path) so dq-cli doesn't
+# need a direct dep on tatara-lisp and crate2nix's feature closure
+# stays simple.
 lisp = [
     "shikumi/lisp",
-    "dq-formats/lisp",
     "dep:shikumi",
     "dep:serde",
     "dep:sha2",

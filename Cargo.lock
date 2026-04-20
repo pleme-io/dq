@@ -395,7 +395,6 @@ dependencies = [
  "serde",
  "serde-saphyr",
  "serde_json",
- "tatara-lisp 0.2.0 (git+https://github.com/pleme-io/tatara-lisp)",
  "toml",
 ]
 
@@ -1193,7 +1192,7 @@ dependencies = [
  "notify",
  "serde",
  "serde_json",
- "tatara-lisp 0.2.0 (git+https://github.com/pleme-io/tatara)",
+ "tatara-lisp",
  "thiserror 2.0.18",
  "tracing",
 ]
@@ -1241,19 +1240,7 @@ dependencies = [
  "blake3",
  "serde",
  "serde_json",
- "tatara-lisp-derive 0.2.0 (git+https://github.com/pleme-io/tatara)",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "tatara-lisp"
-version = "0.2.0"
-source = "git+https://github.com/pleme-io/tatara-lisp#49356034839f402d4e2decf41478b9748607973b"
-dependencies = [
- "blake3",
- "serde",
- "serde_json",
- "tatara-lisp-derive 0.2.0 (git+https://github.com/pleme-io/tatara-lisp)",
+ "tatara-lisp-derive",
  "thiserror 2.0.18",
 ]
 
@@ -1261,16 +1248,6 @@ dependencies = [
 name = "tatara-lisp-derive"
 version = "0.2.0"
 source = "git+https://github.com/pleme-io/tatara#cdaed5ec5e083978828fee2aa17e747403718f61"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "tatara-lisp-derive"
-version = "0.2.0"
-source = "git+https://github.com/pleme-io/tatara-lisp#49356034839f402d4e2decf41478b9748607973b"
 dependencies = [
  "proc-macro2",
  "quote",
