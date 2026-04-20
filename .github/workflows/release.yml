@@ -83,14 +83,13 @@ jobs:
           shasum -a 256 dq-${{ matrix.slug }} > dq-${{ matrix.slug }}.sha256
 
       - name: Sanity-check the binary
-        # Make sure the binary actually runs and includes the lisp
-        # feature (i.e. has `verify-mermaid` as a subcommand).
-        # Skipping on cross-arch Linux runners where the ARM64 runner
-        # is native; the matrix already pairs each target with a
-        # matching native runner.
+        # Verify the binary was built for the right target and actually
+        # runs on the native runner. Subcommand coverage is tested by
+        # `cargo test`; the release workflow only confirms the build is
+        # executable.
         run: |
           ./dq-${{ matrix.slug }} --version
-          ./dq-${{ matrix.slug }} verify-mermaid --help
+          ./dq-${{ matrix.slug }} --help > /dev/null
 
       - name: Upload artefact
         uses: actions/upload-artifact@v4
