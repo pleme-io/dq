@@ -1139,6 +1139,15 @@ rec {
             packageId = "dq-viz";
           }
           {
+            name = "indexmap";
+            packageId = "indexmap";
+            features = [ "serde" ];
+          }
+          {
+            name = "petgraph";
+            packageId = "petgraph";
+          }
+          {
             name = "serde";
             packageId = "serde";
             optional = true;
