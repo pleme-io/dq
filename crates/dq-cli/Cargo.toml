@@ -9,6 +9,14 @@ license.workspace = true
 name = "dq"
 path = "src/main.rs"
 
+[features]
+default = []
+# Enables `dq verify-mermaid` — parses a Mermaid digest Lisp file via
+# shikumi's `lisp` provider, typed-deserializes it through serde, and
+# cross-checks it against a canonical topology.json. Off by default
+# because it pulls tatara-lisp through shikumi.
+lisp = ["shikumi/lisp", "dep:shikumi", "dep:serde", "dep:sha2"]
+
 [dependencies]
 dq-core = { path = "../dq-core" }
 dq-formats = { path = "../dq-formats" }
@@ -20,3 +28,10 @@ dq-viz = { path = "../dq-viz" }
 clap = { workspace = true }
 anyhow = { workspace = true }
 serde_json = { workspace = true }
+
+# Lisp-backed verifier (only compiled when `lisp` feature is enabled).
+shikumi = { git = "https://github.com/pleme-io/shikumi", optional = true }
+serde = { workspace = true, optional = true }
+# SHA-256 for the projection hash — matches the Python pipeline's
+# fallback (when blake3 isn't available) so the hashes compare.
+sha2 = { version = "0.10", optional = true }
