@@ -26,9 +26,17 @@
   in {
     packages = forEachSystem ({pkgs, ...}: let
       project = import ./Cargo.nix {inherit pkgs;};
+      # `dq verify-mermaid` lives behind the `lisp` feature — it pulls
+      # shikumi + tatara-lisp so the binary can parse Mermaid digest
+      # Lisp files natively. Ships as `dq-full`; the default build
+      # keeps the slimmer dep tree.
+      dqFull = project.workspaceMembers."dq-cli".build.override {
+        features = ["lisp"];
+      };
     in {
       default = project.workspaceMembers."dq-cli".build;
       dq = project.workspaceMembers."dq-cli".build;
+      dq-full = dqFull;
     });
 
     apps = forEachSystem ({pkgs, ...}: let
