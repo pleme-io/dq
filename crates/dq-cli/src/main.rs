@@ -156,6 +156,10 @@ enum TerragruntCommands {
         /// Root directory
         #[arg(default_value = ".")]
         root: PathBuf,
+        /// Output format: text (one path per line, default) or json
+        /// (structured record per module with dependency counts).
+        #[arg(short = 't', long = "to", default_value = "text")]
+        format: String,
     },
 
     /// Show dependencies of a module
@@ -370,10 +374,52 @@ fn cmd_terragrunt(command: TerragruntCommands) -> Result<()> {
             std::io::Write::write_all(&mut std::io::stdout(), &output)?;
             Ok(())
         }
-        TerragruntCommands::List { root } => {
+        TerragruntCommands::List { root, format } => {
             let dag = dq_terragrunt::DependencyGraph::from_directory(&root)?;
-            for idx in dag.graph.node_indices() {
-                println!("{}", dag.graph[idx].relative_path);
+            match format.as_str() {
+                "json" => {
+                    // Structured record per module — stable field set
+                    // callers can parse without re-scanning: path,
+                    // outgoing dep count, incoming dep count, whether
+                    // the module declares a source= attribute.
+                    use dq_core::Value;
+                    use std::sync::Arc;
+                    let records: Vec<Value> = dag.graph.node_indices().map(|idx| {
+                        let node = &dag.graph[idx];
+                        let dep_count = dag.graph.neighbors(idx).count();
+                        let dependent_count = dag
+                            .graph
+                            .neighbors_directed(idx, petgraph::Direction::Incoming)
+                            .count();
+                        let has_source = node.source.is_some();
+                        let mut obj: indexmap::IndexMap<Arc<str>, Value> =
+                            indexmap::IndexMap::new();
+                        obj.insert(
+                            Arc::from("path"),
+                            Value::string(node.relative_path.as_str()),
+                        );
+                        obj.insert(Arc::from("has_source"), Value::bool(has_source));
+                        obj.insert(
+                            Arc::from("dependency_count"),
+                            Value::int(dep_count as i64),
+                        );
+                        obj.insert(
+                            Arc::from("dependent_count"),
+                            Value::int(dependent_count as i64),
+                        );
+                        Value::map(obj)
+                    }).collect();
+                    let out = dq_formats::serialize(
+                        dq_formats::FormatKind::Json,
+                        &Value::array(records),
+                    )?;
+                    std::io::Write::write_all(&mut std::io::stdout(), &out)?;
+                }
+                _ => {
+                    for idx in dag.graph.node_indices() {
+                        println!("{}", dag.graph[idx].relative_path);
+                    }
+                }
             }
             Ok(())
         }

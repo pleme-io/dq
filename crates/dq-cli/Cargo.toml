@@ -28,6 +28,10 @@ dq-viz = { path = "../dq-viz" }
 clap = { workspace = true }
 anyhow = { workspace = true }
 serde_json = { workspace = true }
+# Used by tg list --to json to walk the dq-terragrunt DAG and build
+# typed records via dq_core::Value.
+indexmap = { workspace = true }
+petgraph = { workspace = true }
 
 # Lisp-backed verifier (only compiled when `lisp` feature is enabled).
 shikumi = { git = "https://github.com/pleme-io/shikumi", optional = true }

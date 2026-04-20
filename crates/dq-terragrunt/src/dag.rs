@@ -96,11 +96,21 @@ impl DependencyGraph {
             })
             .collect();
 
+        // Dedup edges — `all_dependency_paths()` can produce the same
+        // edge twice when a module declares the same dependency via
+        // different HCL block shapes (e.g. a literal `dependency {}`
+        // plus an included one from root.hcl). petgraph::DiGraph
+        // allows parallel edges, which surfaces as duplicate entries
+        // in `.dependencies` / `.dependents` on consumers.
+        let mut seen: std::collections::HashSet<(petgraph::graph::NodeIndex, petgraph::graph::NodeIndex)> =
+            std::collections::HashSet::new();
         for (module_path, dep_paths) in entries {
             let from = node_map[&module_path];
             for dep_path in dep_paths {
                 if let Some(&to) = node_map.get(&dep_path) {
-                    graph.add_edge(from, to, "depends_on");
+                    if seen.insert((from, to)) {
+                        graph.add_edge(from, to, "depends_on");
+                    }
                 }
             }
         }

@@ -363,6 +363,8 @@ dependencies = [
  "dq-scan",
  "dq-terragrunt",
  "dq-viz",
+ "indexmap",
+ "petgraph",
  "serde",
  "serde_json",
  "sha2",
