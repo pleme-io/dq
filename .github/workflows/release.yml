@@ -44,12 +44,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # macos-13 x86_64-darwin was dropped — Apple EOL'd Intel Macs
+          # and GitHub's macos-13 runner pool is chronically saturated
+          # (v0.1.0 sat 4h+ with no allocation, blocking release). Add
+          # the target back if/when an Intel-Mac consumer appears.
           - slug: darwin-arm64
             runner: macos-14
             rust_target: aarch64-apple-darwin
-          - slug: darwin-x86_64
-            runner: macos-13
-            rust_target: x86_64-apple-darwin
           - slug: linux-x86_64
             runner: ubuntu-24.04
             rust_target: x86_64-unknown-linux-gnu
