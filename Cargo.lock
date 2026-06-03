@@ -229,7 +229,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c673075a2e0e5f4a1dde27ce9dee1ea4558c7ffe648f576438a20ca1d2acc4b0"
 dependencies = [
  "iana-time-zone",
+ "js-sys",
  "num-traits",
+ "serde",
+ "wasm-bindgen",
  "windows-link",
 ]
 
@@ -548,12 +551,40 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
-name = "fsevent-sys"
-version = "4.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76ee7a02da4d231650c7cea31349b889be2f45ddb3ef3032d2ec8185f6313fd2"
+name = "gen-macros"
+version = "0.1.8"
+source = "git+https://github.com/pleme-io/gen#8ecee494c1d478d3d34532919ccea322075d7890"
 dependencies = [
- "libc",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "gen-platform"
+version = "0.1.8"
+source = "git+https://github.com/pleme-io/gen#8ecee494c1d478d3d34532919ccea322075d7890"
+dependencies = [
+ "gen-macros",
+ "gen-types",
+ "inventory",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "gen-types"
+version = "0.1.8"
+source = "git+https://github.com/pleme-io/gen#8ecee494c1d478d3d34532919ccea322075d7890"
+dependencies = [
+ "blake3",
+ "chrono",
+ "indexmap",
+ "inventory",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -697,6 +728,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e05c02b5e89bff3b946cedeca278abc628fe811e604f027c45a8aa3cf793d0eb"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "inventory"
+version = "0.3.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4f0c30c76f2f4ccee3fe55a2435f691ca00c0e4bd87abe4f4a851b1d4dac39b"
+dependencies = [
+ "rustversion",
 ]
 
 [[package]]
@@ -869,7 +909,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4d3d07927151ff8575b7087f245456e549fea62edf0ec4e565a5ee50c8402bc3"
 dependencies = [
  "bitflags 2.11.0",
- "fsevent-sys",
  "inotify",
  "kqueue",
  "libc",
@@ -1183,15 +1222,18 @@ dependencies = [
 
 [[package]]
 name = "shikumi"
-version = "0.1.0"
-source = "git+https://github.com/pleme-io/shikumi#18617d7735a65b701cb60f64eba4cca67668c188"
+version = "0.1.1"
+source = "git+https://github.com/pleme-io/shikumi#0d50d62e78a0e1d69ac4e92fb2d5c9032babeab6"
 dependencies = [
  "arc-swap",
  "async-trait",
  "figment",
+ "gen-platform",
+ "gen-types",
  "notify",
  "serde",
  "serde_json",
+ "serde_yaml",
  "tatara-lisp",
  "thiserror 2.0.18",
  "tracing",
@@ -1234,8 +1276,8 @@ dependencies = [
 
 [[package]]
 name = "tatara-lisp"
-version = "0.2.0"
-source = "git+https://github.com/pleme-io/tatara#cdaed5ec5e083978828fee2aa17e747403718f61"
+version = "0.2.3"
+source = "git+https://github.com/pleme-io/tatara#86bbd5f6a512722ffb34f1e1cfe92a2110bf258f"
 dependencies = [
  "blake3",
  "serde",
@@ -1246,8 +1288,8 @@ dependencies = [
 
 [[package]]
 name = "tatara-lisp-derive"
-version = "0.2.0"
-source = "git+https://github.com/pleme-io/tatara#cdaed5ec5e083978828fee2aa17e747403718f61"
+version = "0.2.3"
+source = "git+https://github.com/pleme-io/tatara#86bbd5f6a512722ffb34f1e1cfe92a2110bf258f"
 dependencies = [
  "proc-macro2",
  "quote",
