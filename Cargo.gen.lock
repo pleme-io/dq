@@ -333,6 +333,22 @@
           "std"
         ]
       },
+      "block-buffer-0.10.4": {
+        "runtime_dependencies": [
+          {
+            "name": "generic_array",
+            "package_key": "generic-array-0.14.7",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          }
+        ],
+        "build_dependencies": [],
+        "features": []
+      },
       "cc-1.2.57": {
         "runtime_dependencies": [
           {
@@ -569,6 +585,34 @@
           "std"
         ]
       },
+      "crypto-common-0.1.7": {
+        "runtime_dependencies": [
+          {
+            "name": "generic_array",
+            "package_key": "generic-array-0.14.7",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          },
+          {
+            "name": "typenum",
+            "package_key": "typenum-1.20.0",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          }
+        ],
+        "build_dependencies": [],
+        "features": [
+          "std"
+        ]
+      },
       "csv-1.4.0": {
         "runtime_dependencies": [
           {
@@ -631,6 +675,38 @@
         "build_dependencies": [],
         "features": [
           "default"
+        ]
+      },
+      "digest-0.10.7": {
+        "runtime_dependencies": [
+          {
+            "name": "block_buffer",
+            "package_key": "block-buffer-0.10.4",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          },
+          {
+            "name": "crypto_common",
+            "package_key": "crypto-common-0.1.7",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          }
+        ],
+        "build_dependencies": [],
+        "features": [
+          "alloc",
+          "block-buffer",
+          "core-api",
+          "default",
+          "std"
         ]
       },
       "dq-cli-0.1.0": {
@@ -750,6 +826,18 @@
             "tree": "target"
           },
           {
+            "name": "serde",
+            "package_key": "serde-1.0.228",
+            "kind": "normal",
+            "features": [
+              "derive"
+            ],
+            "uses_default_features": true,
+            "optional": true,
+            "target": null,
+            "tree": "target"
+          },
+          {
             "name": "serde_json",
             "package_key": "serde_json-1.0.149",
             "kind": "normal",
@@ -758,11 +846,32 @@
             "optional": false,
             "target": null,
             "tree": "target"
+          },
+          {
+            "name": "sha2",
+            "package_key": "sha2-0.10.9",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": true,
+            "target": null,
+            "tree": "target"
+          },
+          {
+            "name": "shikumi",
+            "package_key": "shikumi-0.1.1-0d50d62e78a0e1d69ac4e92fb2d5c9032babeab6",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": true,
+            "target": null,
+            "tree": "target"
           }
         ],
         "build_dependencies": [],
         "features": [
-          "default"
+          "default",
+          "lisp"
         ]
       },
       "dq-core-0.1.0": {
@@ -1109,7 +1218,7 @@
           },
           {
             "name": "shikumi",
-            "package_key": "shikumi-0.1.1",
+            "package_key": "shikumi-0.1.1-0d50d62e78a0e1d69ac4e92fb2d5c9032babeab6",
             "kind": "normal",
             "features": [],
             "uses_default_features": true,
@@ -1480,7 +1589,7 @@
         "build_dependencies": [],
         "features": []
       },
-      "gen-macros-0.1.8": {
+      "gen-macros-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890": {
         "runtime_dependencies": [
           {
             "name": "proc_macro2",
@@ -1519,11 +1628,11 @@
         "build_dependencies": [],
         "features": []
       },
-      "gen-platform-0.1.8": {
+      "gen-platform-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890": {
         "runtime_dependencies": [
           {
             "name": "gen_macros",
-            "package_key": "gen-macros-0.1.8",
+            "package_key": "gen-macros-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890",
             "kind": "normal",
             "features": [],
             "uses_default_features": true,
@@ -1533,7 +1642,7 @@
           },
           {
             "name": "gen_types",
-            "package_key": "gen-types-0.1.8",
+            "package_key": "gen-types-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890",
             "kind": "normal",
             "features": [],
             "uses_default_features": true,
@@ -1587,7 +1696,7 @@
         "build_dependencies": [],
         "features": []
       },
-      "gen-types-0.1.8": {
+      "gen-types-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890": {
         "runtime_dependencies": [
           {
             "name": "blake3",
@@ -1668,6 +1777,35 @@
         ],
         "build_dependencies": [],
         "features": []
+      },
+      "generic-array-0.14.7": {
+        "runtime_dependencies": [
+          {
+            "name": "typenum",
+            "package_key": "typenum-1.20.0",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          }
+        ],
+        "build_dependencies": [
+          {
+            "name": "version_check",
+            "package_key": "version_check-0.9.5",
+            "kind": "build",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "host"
+          }
+        ],
+        "features": [
+          "more_lengths"
+        ]
       },
       "getrandom-0.3.4": {
         "runtime_dependencies": [
@@ -3285,7 +3423,46 @@
         "build_dependencies": [],
         "features": []
       },
-      "shikumi-0.1.1": {
+      "sha2-0.10.9": {
+        "runtime_dependencies": [
+          {
+            "name": "cfg_if",
+            "package_key": "cfg-if-1.0.4",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          },
+          {
+            "name": "cpufeatures",
+            "package_key": "cpufeatures-0.2.17",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": "cfg(any(target_arch = \"aarch64\", target_arch = \"x86_64\", target_arch = \"x86\"))",
+            "tree": "target"
+          },
+          {
+            "name": "digest",
+            "package_key": "digest-0.10.7",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          }
+        ],
+        "build_dependencies": [],
+        "features": [
+          "default",
+          "std"
+        ]
+      },
+      "shikumi-0.1.1-0d50d62e78a0e1d69ac4e92fb2d5c9032babeab6": {
         "runtime_dependencies": [
           {
             "name": "arc_swap",
@@ -3323,7 +3500,7 @@
           },
           {
             "name": "gen_platform",
-            "package_key": "gen-platform-0.1.8",
+            "package_key": "gen-platform-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890",
             "kind": "normal",
             "features": [],
             "uses_default_features": true,
@@ -3333,7 +3510,7 @@
           },
           {
             "name": "gen_types",
-            "package_key": "gen-types-0.1.8",
+            "package_key": "gen-types-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890",
             "kind": "normal",
             "features": [],
             "uses_default_features": true,
@@ -3394,6 +3571,16 @@
             "tree": "target"
           },
           {
+            "name": "tatara_lisp",
+            "package_key": "tatara-lisp-0.2.3-86bbd5f6a512722ffb34f1e1cfe92a2110bf258f",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          },
+          {
             "name": "thiserror",
             "package_key": "thiserror-2.0.18",
             "kind": "normal",
@@ -3416,7 +3603,8 @@
         ],
         "build_dependencies": [],
         "features": [
-          "default"
+          "default",
+          "lisp"
         ]
       },
       "shlex-1.3.0": {
@@ -3488,6 +3676,104 @@
           "visit",
           "visit-mut"
         ]
+      },
+      "tatara-lisp-0.2.3-86bbd5f6a512722ffb34f1e1cfe92a2110bf258f": {
+        "runtime_dependencies": [
+          {
+            "name": "blake3",
+            "package_key": "blake3-1.8.4",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          },
+          {
+            "name": "serde",
+            "package_key": "serde-1.0.228",
+            "kind": "normal",
+            "features": [
+              "derive"
+            ],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          },
+          {
+            "name": "serde_json",
+            "package_key": "serde_json-1.0.149",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          },
+          {
+            "name": "tatara_lisp_derive",
+            "package_key": "tatara-lisp-derive-0.2.3-86bbd5f6a512722ffb34f1e1cfe92a2110bf258f",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "host"
+          },
+          {
+            "name": "thiserror",
+            "package_key": "thiserror-2.0.18",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          }
+        ],
+        "build_dependencies": [],
+        "features": [
+          "default"
+        ]
+      },
+      "tatara-lisp-derive-0.2.3-86bbd5f6a512722ffb34f1e1cfe92a2110bf258f": {
+        "runtime_dependencies": [
+          {
+            "name": "proc_macro2",
+            "package_key": "proc-macro2-1.0.106",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          },
+          {
+            "name": "quote",
+            "package_key": "quote-1.0.45",
+            "kind": "normal",
+            "features": [],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          },
+          {
+            "name": "syn",
+            "package_key": "syn-2.0.117",
+            "kind": "normal",
+            "features": [
+              "full"
+            ],
+            "uses_default_features": true,
+            "optional": false,
+            "target": null,
+            "tree": "target"
+          }
+        ],
+        "build_dependencies": [],
+        "features": []
       },
       "tempfile-3.27.0": {
         "runtime_dependencies": [
@@ -3918,6 +4204,11 @@
           "std"
         ]
       },
+      "typenum-1.20.0": {
+        "runtime_dependencies": [],
+        "build_dependencies": [],
+        "features": []
+      },
       "uncased-0.9.10": {
         "runtime_dependencies": [],
         "build_dependencies": [
@@ -4126,6 +4417,52 @@
               "default",
               "link"
             ]
+          },
+          "cpufeatures-0.2.17": {
+            "runtime_dependencies": [
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "aarch64-linux-android",
+                "tree": "target"
+              },
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "cfg(all(target_arch = \"aarch64\", target_os = \"linux\"))",
+                "tree": "target"
+              },
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "cfg(all(target_arch = \"aarch64\", target_vendor = \"apple\"))",
+                "tree": "target"
+              },
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "cfg(all(target_arch = \"loongarch64\", target_os = \"linux\"))",
+                "tree": "target"
+              }
+            ],
+            "build_dependencies": [],
+            "features": []
           },
           "iana-time-zone-0.1.65": {
             "runtime_dependencies": [
@@ -4473,6 +4810,11 @@
               "link"
             ]
           },
+          "cpufeatures-0.2.17": {
+            "runtime_dependencies": [],
+            "build_dependencies": [],
+            "features": []
+          },
           "cpufeatures-0.3.0": {
             "runtime_dependencies": [],
             "build_dependencies": [],
@@ -4808,6 +5150,11 @@
               "default",
               "std"
             ]
+          },
+          "cpufeatures-0.2.17": {
+            "runtime_dependencies": [],
+            "build_dependencies": [],
+            "features": []
           },
           "cpufeatures-0.3.0": {
             "runtime_dependencies": [],
@@ -5146,6 +5493,11 @@
               "std"
             ]
           },
+          "cpufeatures-0.2.17": {
+            "runtime_dependencies": [],
+            "build_dependencies": [],
+            "features": []
+          },
           "cpufeatures-0.3.0": {
             "runtime_dependencies": [],
             "build_dependencies": [],
@@ -5473,6 +5825,52 @@
               "std"
             ]
           },
+          "cpufeatures-0.2.17": {
+            "runtime_dependencies": [
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "aarch64-linux-android",
+                "tree": "target"
+              },
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "cfg(all(target_arch = \"aarch64\", target_os = \"linux\"))",
+                "tree": "target"
+              },
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "cfg(all(target_arch = \"aarch64\", target_vendor = \"apple\"))",
+                "tree": "target"
+              },
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "cfg(all(target_arch = \"loongarch64\", target_os = \"linux\"))",
+                "tree": "target"
+              }
+            ],
+            "build_dependencies": [],
+            "features": []
+          },
           "iana-time-zone-0.1.65": {
             "runtime_dependencies": [],
             "build_dependencies": [],
@@ -5795,6 +6193,52 @@
               "std"
             ]
           },
+          "cpufeatures-0.2.17": {
+            "runtime_dependencies": [
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "aarch64-linux-android",
+                "tree": "target"
+              },
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "cfg(all(target_arch = \"aarch64\", target_os = \"linux\"))",
+                "tree": "target"
+              },
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "cfg(all(target_arch = \"aarch64\", target_vendor = \"apple\"))",
+                "tree": "target"
+              },
+              {
+                "name": "libc",
+                "package_key": "libc-0.2.183",
+                "kind": "normal",
+                "features": [],
+                "uses_default_features": false,
+                "optional": false,
+                "target": "cfg(all(target_arch = \"loongarch64\", target_os = \"linux\"))",
+                "tree": "target"
+              }
+            ],
+            "build_dependencies": [],
+            "features": []
+          },
           "iana-time-zone-0.1.65": {
             "runtime_dependencies": [],
             "build_dependencies": [],
@@ -6106,12 +6550,18 @@
     "base64-0.22.1": {
       "edition": "2018"
     },
+    "bitflags-1.3.2": {
+      "edition": "2018"
+    },
     "bitflags-2.11.0": {
       "edition": "2021"
     },
     "blake3-1.8.4": {
       "edition": "2024",
       "build_script": "build.rs"
+    },
+    "block-buffer-0.10.4": {
+      "edition": "2018"
     },
     "cc-1.2.57": {
       "edition": "2018"
@@ -6147,13 +6597,22 @@
     "constant_time_eq-0.4.2": {
       "edition": "2024"
     },
-    "cpufeatures-0.3.0": {
-      "edition": "2024"
+    "core-foundation-sys-0.8.7": {
+      "edition": "2018"
+    },
+    "cpufeatures-0.2.17": {
+      "edition": "2018"
+    },
+    "crypto-common-0.1.7": {
+      "edition": "2018"
     },
     "csv-1.4.0": {
       "edition": "2021"
     },
     "csv-core-0.1.13": {
+      "edition": "2018"
+    },
+    "digest-0.10.7": {
       "edition": "2018"
     },
     "dq-cli-0.1.0": {
@@ -6252,15 +6711,19 @@
     "foldhash-0.1.5": {
       "edition": "2021"
     },
-    "gen-macros-0.1.8": {
+    "gen-macros-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890": {
       "edition": "2024",
       "proc_macro": true
     },
-    "gen-platform-0.1.8": {
+    "gen-platform-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890": {
       "edition": "2024"
     },
-    "gen-types-0.1.8": {
+    "gen-types-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890": {
       "edition": "2024"
+    },
+    "generic-array-0.14.7": {
+      "edition": "2015",
+      "build_script": "build.rs"
     },
     "getrandom-0.3.4": {
       "edition": "2021",
@@ -6297,12 +6760,6 @@
     "inlinable_string-0.1.15": {
       "edition": "2018"
     },
-    "inotify-0.11.1": {
-      "edition": "2018"
-    },
-    "inotify-sys-0.1.5": {
-      "edition": "2015"
-    },
     "inventory-0.3.24": {
       "edition": "2021"
     },
@@ -6327,6 +6784,12 @@
     "jsonptr-0.7.1": {
       "edition": "2021"
     },
+    "kqueue-1.1.1": {
+      "edition": "2021"
+    },
+    "kqueue-sys-1.0.4": {
+      "edition": "2018"
+    },
     "kstring-2.0.2": {
       "edition": "2021"
     },
@@ -6337,9 +6800,6 @@
     "libm-0.2.16": {
       "edition": "2021",
       "build_script": "build.rs"
-    },
-    "linux-raw-sys-0.12.1": {
-      "edition": "2021"
     },
     "log-0.4.29": {
       "edition": "2021"
@@ -6472,7 +6932,10 @@
     "serde_yaml-0.9.34+deprecated": {
       "edition": "2021"
     },
-    "shikumi-0.1.1": {
+    "sha2-0.10.9": {
+      "edition": "2018"
+    },
+    "shikumi-0.1.1-0d50d62e78a0e1d69ac4e92fb2d5c9032babeab6": {
       "edition": "2024"
     },
     "shlex-1.3.0": {
@@ -6489,6 +6952,13 @@
     },
     "syn-2.0.117": {
       "edition": "2021"
+    },
+    "tatara-lisp-0.2.3-86bbd5f6a512722ffb34f1e1cfe92a2110bf258f": {
+      "edition": "2021"
+    },
+    "tatara-lisp-derive-0.2.3-86bbd5f6a512722ffb34f1e1cfe92a2110bf258f": {
+      "edition": "2021",
+      "proc_macro": true
     },
     "tempfile-3.27.0": {
       "edition": "2021"
@@ -6533,6 +7003,9 @@
     },
     "typed-arena-2.0.2": {
       "edition": "2015"
+    },
+    "typenum-1.20.0": {
+      "edition": "2018"
     },
     "uncased-0.9.10": {
       "edition": "2018",
@@ -6590,24 +7063,26 @@
       "edition": "2021",
       "build_script": "build.rs"
     },
-    "bitflags-1.3.2": {
+    "cpufeatures-0.3.0": {
+      "edition": "2024"
+    },
+    "inotify-0.11.1": {
       "edition": "2018"
     },
-    "core-foundation-sys-0.8.7": {
-      "edition": "2018"
+    "inotify-sys-0.1.5": {
+      "edition": "2015"
     },
-    "kqueue-1.1.1": {
+    "linux-raw-sys-0.12.1": {
       "edition": "2021"
-    },
-    "kqueue-sys-1.0.4": {
-      "edition": "2018"
     }
   },
   "git_nar_sha256": {
-    "gen-macros-0.1.8": "sha256-PTWL28fRRuatSLkwr47mHn/ZxbzJcaXSVXn4FdmdGS4=",
-    "gen-platform-0.1.8": "sha256-PTWL28fRRuatSLkwr47mHn/ZxbzJcaXSVXn4FdmdGS4=",
-    "gen-types-0.1.8": "sha256-PTWL28fRRuatSLkwr47mHn/ZxbzJcaXSVXn4FdmdGS4=",
-    "shikumi-0.1.1": "sha256-Vw1SIFXcINha2vPklXuEiSMbmjPXYKSWedRttkb1bCE="
+    "gen-macros-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890": "sha256-PTWL28fRRuatSLkwr47mHn/ZxbzJcaXSVXn4FdmdGS4=",
+    "gen-platform-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890": "sha256-PTWL28fRRuatSLkwr47mHn/ZxbzJcaXSVXn4FdmdGS4=",
+    "gen-types-0.1.8-8ecee494c1d478d3d34532919ccea322075d7890": "sha256-PTWL28fRRuatSLkwr47mHn/ZxbzJcaXSVXn4FdmdGS4=",
+    "shikumi-0.1.1-0d50d62e78a0e1d69ac4e92fb2d5c9032babeab6": "sha256-Vw1SIFXcINha2vPklXuEiSMbmjPXYKSWedRttkb1bCE=",
+    "tatara-lisp-0.2.3-86bbd5f6a512722ffb34f1e1cfe92a2110bf258f": "sha256-iLTRNbOGcyhMtotiAVShtfVMcEygoycpppqbD879i6Y=",
+    "tatara-lisp-derive-0.2.3-86bbd5f6a512722ffb34f1e1cfe92a2110bf258f": "sha256-iLTRNbOGcyhMtotiAVShtfVMcEygoycpppqbD879i6Y="
   },
   "flake_metadata": {}
 }
