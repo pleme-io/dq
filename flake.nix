@@ -1,47 +1,56 @@
 {
   description = "dq — universal infrastructure data query tool";
 
-  nixConfig = {
-    allow-import-from-derivation = true;
-  };
-
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    crate2nix.url = "github:nix-community/crate2nix";
+
+    # substrate owns the Rust build pattern: lockfile-builder.nix reconstructs
+    # the build graph from the committed `Cargo.gen.lock` (gen delta) in pure
+    # Nix, auto-fetching its pinned `gen` only when the delta is stale. Replaces
+    # the raw `crate2nix` + `import ./Cargo.nix` path (which required a
+    # generated Nix file that was never committed).
+    substrate = {
+      url = "github:pleme-io/substrate";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
     self,
     nixpkgs,
-    crate2nix,
+    substrate,
     ...
   }: let
     supportedSystems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
     forEachSystem = f:
       nixpkgs.lib.genAttrs supportedSystems (system:
         f {
+          inherit system;
           pkgs = import nixpkgs {inherit system;};
-          crate2nixPkg = crate2nix.packages.${system}.default;
         });
+
+    # The workspace build graph for a given pkgs, reconstructed from
+    # Cargo.gen.lock by substrate's lockfile-builder.
+    projectFor = pkgs:
+      (import "${substrate}/lib/build/rust/lockfile-builder.nix" {inherit pkgs;}).mkProject {
+        src = self;
+        name = "dq";
+      };
   in {
     packages = forEachSystem ({pkgs, ...}: let
-      project = import ./Cargo.nix {inherit pkgs;};
-      # `dq verify-mermaid` lives behind the `lisp` feature — it pulls
-      # shikumi + tatara-lisp so the binary can parse Mermaid digest
-      # Lisp files natively. Ships as `dq-full`; the default build
-      # keeps the slimmer dep tree.
-      dqFull = project.workspaceMembers."dq-cli".build.override {
-        features = ["lisp"];
-      };
+      # `dq-cli` enables the `lisp` feature by default (gen+lockfile-builder
+      # resolves one feature set into Cargo.gen.lock, and `dq verify-mermaid`
+      # needs it). `dq`, `default`, and `dq-full` are the same binary;
+      # `dq-full` is kept as an alias so existing `#dq-full` references resolve.
+      dq = (projectFor pkgs).workspaceMembers."dq-cli".build;
     in {
-      default = project.workspaceMembers."dq-cli".build;
-      dq = project.workspaceMembers."dq-cli".build;
-      dq-full = dqFull;
+      default = dq;
+      dq = dq;
+      dq-full = dq;
     });
 
     apps = forEachSystem ({pkgs, ...}: let
-      project = import ./Cargo.nix {inherit pkgs;};
-      dq = project.workspaceMembers."dq-cli".build;
+      dq = (projectFor pkgs).workspaceMembers."dq-cli".build;
     in {
       default = {
         type = "app";
@@ -53,8 +62,8 @@
       };
     });
 
-    overlays.default = final: prev: {
-      dq = (import ./Cargo.nix {pkgs = final;}).workspaceMembers."dq-cli".build;
+    overlays.default = final: _prev: {
+      dq = (projectFor final).workspaceMembers."dq-cli".build;
     };
   };
 }
