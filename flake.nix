@@ -2,7 +2,7 @@
   description = "dq — universal infrastructure data query tool";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.follows = "substrate/nixpkgs";
 
     # substrate owns the Rust build pattern: lockfile-builder.nix reconstructs
     # the build graph from the committed `Cargo.gen.lock` (gen delta) in pure
@@ -11,7 +11,6 @@
     # generated Nix file that was never committed).
     substrate = {
       url = "github:pleme-io/substrate";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
