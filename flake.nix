@@ -59,6 +59,15 @@
         type = "app";
         program = "${dq}/bin/dq";
       };
+      # `nix run #dq-full` must resolve to an APP (program = bin/dq).
+      # Without this, it falls back to packages.dq-full and nix infers the
+      # binary name from the crate pname ("dq-cli"), executing a nonexistent
+      # `bin/dq-cli`. The binary is `bin/dq`; consumers (e.g. the repo-docs
+      # generator) call `nix run github:pleme-io/dq#dq-full`.
+      dq-full = {
+        type = "app";
+        program = "${dq}/bin/dq";
+      };
     });
 
     overlays.default = final: _prev: {
