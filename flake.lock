@@ -963,10 +963,6 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": [
-          "substrate",
-          "nixpkgs"
-        ],
         "substrate": "substrate"
       }
     },
