@@ -1,35 +1,16 @@
-# Build + publish `dq` binaries for macOS and Linux on every tag push
-# and via manual dispatch. Downstream consumers (e.g. the
-# `akeylesslabs/akeyless-environments` repo-document skill) fetch
-# these artefacts via `rebuild-vendor` when they want to refresh
-# their vendored `dq` without running the nix build locally.
+# Release pipeline — invokes the pleme-actions reusable release workflow.
+# Edit the canonical file at:
+#   pleme-io/pleme-actions/.github/workflows/release-action.yml
 #
-# Runners:
-#   - macos-14           → aarch64-darwin (Apple Silicon)
-#   - macos-13           → x86_64-darwin  (Intel)
-#   - ubuntu-24.04       → x86_64-linux (glibc)
-#   - ubuntu-24.04-arm   → aarch64-linux (glibc)
+# Triggered on tag push (vX.Y.Z): cross-compiles the binary for 3 targets,
+# creates a GitHub Release, auto-advances the moving major-version tag.
 #
-# The `lisp` feature is enabled on every build so `dq verify-mermaid`
-# (and therefore the repo-document pipeline's I9 projection-hash
-# round-trip) works out of the box.
-name: release
+# REPLACED a hand-written 3-target cross-compile matrix. Eleven repos in the
+# fleet were already thin shims over this exact reusable; this file was one of
+# the copies that had not been converted, so the drift it carried was
+# invisible to the catalog and to any review reading substrate alone.
 
-# Build + publish `dq` binaries for macOS and Linux on every tag push
-# and via manual dispatch. Downstream consumers (e.g. the
-# `akeylesslabs/akeyless-environments` repo-document skill) fetch
-# these artefacts via `rebuild-vendor` when they want to refresh
-# their vendored `dq` without running the nix build locally.
-#
-# Runners:
-#   - macos-14  → aarch64-darwin (Apple Silicon)
-#   - macos-13  → x86_64-darwin  (Intel)
-#   - ubuntu-24.04        → x86_64-linux (glibc)
-#   - ubuntu-24.04-arm    → aarch64-linux (glibc)
-#
-# The `lisp` feature is enabled on every build so `dq verify-mermaid`
-# (and therefore the repo-document pipeline's I9 projection-hash
-# round-trip) works out of the box.
+name: release
 
 on:
   push:
@@ -37,94 +18,12 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build:
-    name: ${{ matrix.slug }}
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # macos-13 x86_64-darwin was dropped — Apple EOL'd Intel Macs
-          # and GitHub's macos-13 runner pool is chronically saturated
-          # (v0.1.0 sat 4h+ with no allocation, blocking release). Add
-          # the target back if/when an Intel-Mac consumer appears.
-          - slug: darwin-arm64
-            runner: macos-14
-            rust_target: aarch64-apple-darwin
-          - slug: linux-x86_64
-            runner: ubuntu-24.04
-            rust_target: x86_64-unknown-linux-gnu
-          - slug: linux-arm64
-            runner: ubuntu-24.04-arm
-            rust_target: aarch64-unknown-linux-gnu
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.rust_target }}
-
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: cargo-${{ matrix.slug }}-${{ hashFiles('Cargo.lock') }}
-          restore-keys: cargo-${{ matrix.slug }}-
-
-      - name: Build release (with lisp feature)
-        run: |
-          cargo build --release --bin dq \
-            --features lisp \
-            --target ${{ matrix.rust_target }}
-          cp target/${{ matrix.rust_target }}/release/dq dq-${{ matrix.slug }}
-          shasum -a 256 dq-${{ matrix.slug }} > dq-${{ matrix.slug }}.sha256
-
-      - name: Sanity-check the binary
-        # Verify the binary was built for the right target and actually
-        # runs on the native runner. Subcommand coverage is tested by
-        # `cargo test`; the release workflow only confirms the build is
-        # executable.
-        run: |
-          ./dq-${{ matrix.slug }} --help > /dev/null
-
-      - name: Upload artefact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dq-${{ matrix.slug }}
-          path: |
-            dq-${{ matrix.slug }}
-            dq-${{ matrix.slug }}.sha256
-          retention-days: 90
-
-  publish-release:
-    name: Publish release
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
-    runs-on: ubuntu-24.04
+  release:
+    uses: pleme-io/pleme-actions/.github/workflows/release-action.yml@main
+    with:
+      action-name: dq
+      # The old job built with `--features lisp`; the reusable takes it as an
+      # input, so no fork of the pipeline is needed to keep it.
+      cargo-features: lisp
     permissions:
       contents: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artefacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-
-      - name: Flatten artefact tree
-        run: |
-          mkdir -p release
-          find dist -type f \( -name 'dq-*' -o -name 'dq-*.sha256' \) -exec cp {} release/ \;
-          ls -la release/
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: release/*
-          draft: false
-          prerelease: false
-          generate_release_notes: true
