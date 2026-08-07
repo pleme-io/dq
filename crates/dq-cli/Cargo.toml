@@ -45,7 +45,7 @@ indexmap = { workspace = true }
 petgraph = { workspace = true }
 
 # Lisp-backed verifier (only compiled when `lisp` feature is enabled).
-shikumi = { git = "https://github.com/pleme-io/shikumi", optional = true }
+shikumi = { version = "0.1.496", optional = true }
 serde = { workspace = true, optional = true }
 # SHA-256 for the projection hash — matches the Python pipeline's
 # fallback (when blake3 isn't available) so the hashes compare.

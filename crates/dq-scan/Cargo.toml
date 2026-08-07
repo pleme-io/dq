@@ -22,7 +22,7 @@ thiserror = { workspace = true }
 # shikumi owns config discovery + provider chain for pleme-io. Wraps
 # figment + serde_saphyr; the single `with_file()` call auto-detects
 # YAML / TOML / Lisp / Nix by extension.
-shikumi = { git = "https://github.com/pleme-io/shikumi" }
+shikumi = "0.1.496"
 
 [dev-dependencies]
 tempfile = "3"
