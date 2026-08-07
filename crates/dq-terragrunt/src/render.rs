@@ -21,13 +21,18 @@ pub fn render_module(path: &Path) -> Result<Value, Error> {
 
     // Add metadata about the resolution
     let mut result = IndexMap::new();
-    result.insert(Arc::from("_source"), Value::string(hcl_path.to_string_lossy().as_ref()));
+    result.insert(
+        Arc::from("_source"),
+        Value::string(hcl_path.to_string_lossy().as_ref()),
+    );
     result.insert(
         Arc::from("_include_chain"),
         Value::array(
-            chain.paths.iter()
+            chain
+                .paths
+                .iter()
                 .map(|p| Value::string(p.to_string_lossy().as_ref()))
-                .collect::<Vec<_>>()
+                .collect::<Vec<_>>(),
         ),
     );
 

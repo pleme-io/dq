@@ -117,7 +117,10 @@ fn scan_one_module(
     variables.dedup();
     outputs.sort();
     outputs.dedup();
-    let rel = mod_path.strip_prefix(repo_root).unwrap_or(mod_path).to_path_buf();
+    let rel = mod_path
+        .strip_prefix(repo_root)
+        .unwrap_or(mod_path)
+        .to_path_buf();
     TerraformModule {
         cloud: cloud_name.to_string(),
         name: mod_name.to_string(),
@@ -137,7 +140,11 @@ fn collect_tf_files(dir: &Path) -> Vec<PathBuf> {
         for entry in rd.flatten() {
             let p = entry.path();
             if p.is_dir() {
-                if p.file_name().and_then(|s| s.to_str()).map(|s| s.starts_with('.')).unwrap_or(false) {
+                if p.file_name()
+                    .and_then(|s| s.to_str())
+                    .map(|s| s.starts_with('.'))
+                    .unwrap_or(false)
+                {
                     continue;
                 }
                 walk(&p, acc);

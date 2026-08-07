@@ -19,18 +19,18 @@
 //! - [`topology`] -- Assemble the full topology graph with typed edges.
 //! - [`report`] -- Serialize topology to JSON `Value`, DOT, or summary.
 
+pub mod argocd;
 pub mod config;
 pub mod discovery;
-pub mod argocd;
-pub mod helm;
 pub mod environments;
+pub mod helm;
 pub mod modules;
-pub mod topology;
 pub mod report;
+pub mod topology;
 
 pub use config::ScanConfig;
 pub use modules::{scan_modules, TerraformModule};
-pub use topology::{Topology, ScanResult};
+pub use topology::{ScanResult, Topology};
 
 use std::path::Path;
 
@@ -43,7 +43,10 @@ pub fn scan_directory(root: &Path) -> Result<ScanResult, ScanError> {
 }
 
 /// Scan a directory with an explicit configuration.
-pub fn scan_directory_with_config(root: &Path, config: &ScanConfig) -> Result<ScanResult, ScanError> {
+pub fn scan_directory_with_config(
+    root: &Path,
+    config: &ScanConfig,
+) -> Result<ScanResult, ScanError> {
     topology::build_topology(root, config)
 }
 

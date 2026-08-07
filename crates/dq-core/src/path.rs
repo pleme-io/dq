@@ -116,11 +116,14 @@ mod tests {
     #[test]
     fn parse_simple_keys() {
         let p = Path::parse("a.b.c");
-        assert_eq!(p.segments, vec![
-            Segment::Key(Arc::from("a")),
-            Segment::Key(Arc::from("b")),
-            Segment::Key(Arc::from("c")),
-        ]);
+        assert_eq!(
+            p.segments,
+            vec![
+                Segment::Key(Arc::from("a")),
+                Segment::Key(Arc::from("b")),
+                Segment::Key(Arc::from("c")),
+            ]
+        );
     }
 
     #[test]
@@ -132,31 +135,40 @@ mod tests {
     #[test]
     fn parse_with_index() {
         let p = Path::parse("items.0.name");
-        assert_eq!(p.segments, vec![
-            Segment::Key(Arc::from("items")),
-            Segment::Index(0),
-            Segment::Key(Arc::from("name")),
-        ]);
+        assert_eq!(
+            p.segments,
+            vec![
+                Segment::Key(Arc::from("items")),
+                Segment::Index(0),
+                Segment::Key(Arc::from("name")),
+            ]
+        );
     }
 
     #[test]
     fn parse_wildcard() {
         let p = Path::parse("a.*.name");
-        assert_eq!(p.segments, vec![
-            Segment::Key(Arc::from("a")),
-            Segment::Wildcard,
-            Segment::Key(Arc::from("name")),
-        ]);
+        assert_eq!(
+            p.segments,
+            vec![
+                Segment::Key(Arc::from("a")),
+                Segment::Wildcard,
+                Segment::Key(Arc::from("name")),
+            ]
+        );
     }
 
     #[test]
     fn parse_recursive_descent() {
         let p = Path::parse("a..name");
-        assert_eq!(p.segments, vec![
-            Segment::Key(Arc::from("a")),
-            Segment::RecursiveDescent,
-            Segment::Key(Arc::from("name")),
-        ]);
+        assert_eq!(
+            p.segments,
+            vec![
+                Segment::Key(Arc::from("a")),
+                Segment::RecursiveDescent,
+                Segment::Key(Arc::from("name")),
+            ]
+        );
     }
 
     #[test]
@@ -168,10 +180,10 @@ mod tests {
     #[test]
     fn parse_large_index() {
         let p = Path::parse("arr.999");
-        assert_eq!(p.segments, vec![
-            Segment::Key(Arc::from("arr")),
-            Segment::Index(999),
-        ]);
+        assert_eq!(
+            p.segments,
+            vec![Segment::Key(Arc::from("arr")), Segment::Index(999),]
+        );
     }
 
     // ── Resolve tests ────────────────────────────────────────────────
@@ -185,9 +197,7 @@ mod tests {
 
     #[test]
     fn resolve_nested_keys() {
-        let v = Value::from_pairs([
-            ("a", Value::from_pairs([("b", Value::int(42))])),
-        ]);
+        let v = Value::from_pairs([("a", Value::from_pairs([("b", Value::int(42))]))]);
         let results = Path::parse("a.b").resolve(&v);
         assert_eq!(results, vec![&Value::int(42)]);
     }
@@ -201,21 +211,23 @@ mod tests {
 
     #[test]
     fn resolve_array_index() {
-        let v = Value::from_pairs([
-            ("items", Value::array(vec![Value::string("x"), Value::string("y")])),
-        ]);
+        let v = Value::from_pairs([(
+            "items",
+            Value::array(vec![Value::string("x"), Value::string("y")]),
+        )]);
         let results = Path::parse("items.1").resolve(&v);
         assert_eq!(results, vec![&Value::string("y")]);
     }
 
     #[test]
     fn resolve_wildcard_on_map() {
-        let v = Value::from_pairs([
-            ("servers", Value::from_pairs([
+        let v = Value::from_pairs([(
+            "servers",
+            Value::from_pairs([
                 ("a", Value::from_pairs([("port", Value::int(80))])),
                 ("b", Value::from_pairs([("port", Value::int(443))])),
-            ])),
-        ]);
+            ]),
+        )]);
         let results = Path::parse("servers.*.port").resolve(&v);
         assert_eq!(results, vec![&Value::int(80), &Value::int(443)]);
     }
@@ -224,26 +236,26 @@ mod tests {
     fn resolve_wildcard_on_array() {
         let v = Value::array(vec![Value::int(1), Value::int(2), Value::int(3)]);
         let results = Path::parse("*").resolve(&v);
-        assert_eq!(results, vec![&Value::int(1), &Value::int(2), &Value::int(3)]);
+        assert_eq!(
+            results,
+            vec![&Value::int(1), &Value::int(2), &Value::int(3)]
+        );
     }
 
     #[test]
     fn resolve_recursive_descent() {
-        let v = Value::from_pairs([
-            ("a", Value::from_pairs([
+        let v = Value::from_pairs([(
+            "a",
+            Value::from_pairs([
                 ("name", Value::string("inner")),
-                ("b", Value::from_pairs([
-                    ("name", Value::string("deep")),
-                ])),
-            ])),
-        ]);
+                ("b", Value::from_pairs([("name", Value::string("deep"))])),
+            ]),
+        )]);
         let results = Path::parse("a..name").resolve(&v);
         // Recursive descent collects all descendants, then we filter by "name"
         // The "a" subtree descendants include: the map itself, "inner", the inner map, "deep"
         // Then filtering for "name" key on maps yields "inner" and "deep"
-        let string_results: Vec<&str> = results.iter()
-            .filter_map(|v| v.as_str())
-            .collect();
+        let string_results: Vec<&str> = results.iter().filter_map(|v| v.as_str()).collect();
         assert!(string_results.contains(&"inner"));
         assert!(string_results.contains(&"deep"));
     }

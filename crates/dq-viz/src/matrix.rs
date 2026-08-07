@@ -34,7 +34,12 @@ pub fn render(topology: &Topology) -> Result<String> {
     }
 
     // Build sorted sets for axes
-    let tenants: BTreeSet<&str> = topology.taxonomy.tenants.iter().map(|s| s.as_str()).collect();
+    let tenants: BTreeSet<&str> = topology
+        .taxonomy
+        .tenants
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
     let clouds: BTreeSet<&str> = topology
         .taxonomy
         .cloud_providers
@@ -217,7 +222,9 @@ mod tests {
             cloud_provider: "AWS".to_string(),
             region: Some("us-east-1".to_string()),
             file_type: "helm_values".to_string(),
-            path: PathBuf::from("/repo/environments/acme/production/AWS/helm_values_files/us-east-1/values.yaml"),
+            path: PathBuf::from(
+                "/repo/environments/acme/production/AWS/helm_values_files/us-east-1/values.yaml",
+            ),
         }];
         let mut regions = BTreeMap::new();
         regions.insert("AWS".to_string(), BTreeSet::from(["us-east-1".to_string()]));

@@ -161,7 +161,9 @@ mod tests {
 
     impl MemoryFs {
         fn new() -> Self {
-            Self { files: HashMap::new() }
+            Self {
+                files: HashMap::new(),
+            }
         }
 
         fn add_file(&mut self, path: impl Into<PathBuf>) {
@@ -196,20 +198,30 @@ mod tests {
         let root = PathBuf::from("/repo/environments");
         let config = ScanConfig::default();
 
-        fs.add_file("/repo/environments/tenant-a/production/AWS/helm_values_files/us-east-2/values.yaml");
-        fs.add_file("/repo/environments/tenant-a/staging/GCP/helm_values_files/us-central1/values.yaml");
+        fs.add_file(
+            "/repo/environments/tenant-a/production/AWS/helm_values_files/us-east-2/values.yaml",
+        );
+        fs.add_file(
+            "/repo/environments/tenant-a/staging/GCP/helm_values_files/us-central1/values.yaml",
+        );
         fs.add_file("/repo/environments/tenant-b/production/AWS/argocd/us-east-2/config.json");
         fs.add_file("/repo/environments/tenant-c/staging/AZR/service_config/westeurope/conf.yaml");
 
         let configs = walk_environments(&fs, &root, &config).unwrap();
         assert_eq!(configs.len(), 4);
 
-        let first = configs.iter().find(|c| c.tenant == "tenant-a" && c.environment == "production").unwrap();
+        let first = configs
+            .iter()
+            .find(|c| c.tenant == "tenant-a" && c.environment == "production")
+            .unwrap();
         assert_eq!(first.cloud_provider, "AWS");
         assert_eq!(first.region.as_deref(), Some("us-east-2"));
         assert_eq!(first.file_type, "helm_values");
 
-        let argocd = configs.iter().find(|c| c.file_type == "argocd_config").unwrap();
+        let argocd = configs
+            .iter()
+            .find(|c| c.file_type == "argocd_config")
+            .unwrap();
         assert_eq!(argocd.tenant, "tenant-b");
         assert_eq!(argocd.region.as_deref(), Some("us-east-2"));
     }
@@ -220,10 +232,18 @@ mod tests {
         let root = PathBuf::from("/repo/environments");
         let config = ScanConfig::default();
 
-        fs.add_file("/repo/environments/tenant-a/production/AWS/helm_values_files/us-east-2/values.yaml");
-        fs.add_file("/repo/environments/tenant-a/staging/GCP/helm_values_files/us-central1/values.yaml");
-        fs.add_file("/repo/environments/tenant-b/production/AWS/helm_values_files/us-east-2/values.yaml");
-        fs.add_file("/repo/environments/tenant-c/staging/AZR/helm_values_files/westeurope/values.yaml");
+        fs.add_file(
+            "/repo/environments/tenant-a/production/AWS/helm_values_files/us-east-2/values.yaml",
+        );
+        fs.add_file(
+            "/repo/environments/tenant-a/staging/GCP/helm_values_files/us-central1/values.yaml",
+        );
+        fs.add_file(
+            "/repo/environments/tenant-b/production/AWS/helm_values_files/us-east-2/values.yaml",
+        );
+        fs.add_file(
+            "/repo/environments/tenant-c/staging/AZR/helm_values_files/westeurope/values.yaml",
+        );
 
         let configs = walk_environments(&fs, &root, &config).unwrap();
         let taxonomy = build_taxonomy(&configs);
@@ -241,7 +261,9 @@ mod tests {
         let config = ScanConfig::default();
 
         fs.add_file("/repo/environments/generate_configuration_randoms.sh");
-        fs.add_file("/repo/environments/tenant-a/production/AWS/helm_values_files/us-east-2/values.yaml");
+        fs.add_file(
+            "/repo/environments/tenant-a/production/AWS/helm_values_files/us-east-2/values.yaml",
+        );
 
         let configs = walk_environments(&fs, &root, &config).unwrap();
         assert_eq!(configs.len(), 1);
@@ -259,7 +281,8 @@ mod tests {
     #[test]
     fn classify_env_file_with_region() {
         let config = ScanConfig::default();
-        let (ft, region) = classify_env_file(&["helm_values_files", "us-east-1", "values.yaml"], &config);
+        let (ft, region) =
+            classify_env_file(&["helm_values_files", "us-east-1", "values.yaml"], &config);
         assert_eq!(ft, "helm_values");
         assert_eq!(region.as_deref(), Some("us-east-1"));
     }

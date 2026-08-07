@@ -11,14 +11,18 @@ pub struct CsvFormat;
 impl Format for CsvFormat {
     fn parse(&self, input: &[u8]) -> Result<Value, Error> {
         let mut reader = csv::Reader::from_reader(input);
-        let headers: Vec<String> = reader.headers()
+        let headers: Vec<String> = reader
+            .headers()
             .map_err(|e| Error::Parse(format!("CSV headers: {e}")))?
-            .iter().map(String::from).collect();
+            .iter()
+            .map(String::from)
+            .collect();
 
         let mut rows = Vec::new();
         for result in reader.records() {
             let record = result.map_err(|e| Error::Parse(format!("CSV row: {e}")))?;
-            let map: IndexMap<Arc<str>, Value> = headers.iter()
+            let map: IndexMap<Arc<str>, Value> = headers
+                .iter()
                 .zip(record.iter())
                 .map(|(h, v)| (Arc::from(h.as_str()), infer_cell_type(v)))
                 .collect();
@@ -29,7 +33,8 @@ impl Format for CsvFormat {
     }
 
     fn serialize(&self, value: &Value) -> Result<Vec<u8>, Error> {
-        let rows = value.as_array()
+        let rows = value
+            .as_array()
             .ok_or_else(|| Error::Format("CSV serialize: expected array of objects".into()))?;
 
         let mut buf = Vec::new();
@@ -38,19 +43,24 @@ impl Format for CsvFormat {
         // Extract headers from first row
         if let Some(first) = rows.first() {
             let headers: Vec<String> = first.keys().iter().map(|k| k.to_string()).collect();
-            writer.write_record(&headers)
+            writer
+                .write_record(&headers)
                 .map_err(|e| Error::Format(format!("CSV write headers: {e}")))?;
 
             for row in rows {
-                let record: Vec<String> = headers.iter()
+                let record: Vec<String> = headers
+                    .iter()
                     .map(|h| row.get(h).map(|v| v.to_string()).unwrap_or_default())
                     .collect();
-                writer.write_record(&record)
+                writer
+                    .write_record(&record)
                     .map_err(|e| Error::Format(format!("CSV write row: {e}")))?;
             }
         }
 
-        writer.flush().map_err(|e| Error::Format(format!("CSV flush: {e}")))?;
+        writer
+            .flush()
+            .map_err(|e| Error::Format(format!("CSV flush: {e}")))?;
         drop(writer);
         Ok(buf)
     }

@@ -24,11 +24,17 @@ pub fn to_value(topology: &Topology) -> Value {
         .map(|a| {
             Value::from_pairs([
                 ("name", Value::string(&a.name)),
-                ("generator_type", Value::string(a.generator_type.to_string())),
-                ("chart_path", match &a.chart_path {
-                    Some(p) => Value::string(p),
-                    None => Value::Null,
-                }),
+                (
+                    "generator_type",
+                    Value::string(a.generator_type.to_string()),
+                ),
+                (
+                    "chart_path",
+                    match &a.chart_path {
+                        Some(p) => Value::string(p),
+                        None => Value::Null,
+                    },
+                ),
                 (
                     "value_files",
                     Value::array(
@@ -191,12 +197,7 @@ pub fn to_value(topology: &Topology) -> Value {
             Value::from_pairs(topology.taxonomy.regions.iter().map(|(cloud, regions)| {
                 (
                     cloud.as_str(),
-                    Value::array(
-                        regions
-                            .iter()
-                            .map(|r| Value::string(r))
-                            .collect::<Vec<_>>(),
-                    ),
+                    Value::array(regions.iter().map(|r| Value::string(r)).collect::<Vec<_>>()),
                 )
             })),
         ),
@@ -330,9 +331,12 @@ pub fn to_summary(topology: &Topology) -> Value {
     let config_type_counts = {
         let mut type_counts: IndexMap<Arc<str>, i64> = IndexMap::new();
         for c in &topology.config_paths {
-            *type_counts.entry(Arc::from(c.file_type.as_str())).or_insert(0) += 1;
+            *type_counts
+                .entry(Arc::from(c.file_type.as_str()))
+                .or_insert(0) += 1;
         }
-        let pairs: Vec<(&str, Value)> = type_counts.iter()
+        let pairs: Vec<(&str, Value)> = type_counts
+            .iter()
             .map(|(k, v)| (k.as_ref(), Value::int(*v)))
             .collect();
         Value::from_pairs(pairs)
@@ -391,17 +395,35 @@ pub fn appsets_to_value(appsets: &[crate::argocd::AppSetInfo]) -> Value {
             .map(|a| {
                 Value::from_pairs([
                     ("name", Value::string(&a.name)),
-                    ("generator_type", Value::string(a.generator_type.to_string())),
-                    ("chart_path", match &a.chart_path {
-                        Some(p) => Value::string(p),
-                        None => Value::Null,
-                    }),
-                    ("value_files", Value::array(
-                        a.value_files.iter().map(|v| Value::string(v)).collect::<Vec<_>>(),
-                    )),
-                    ("excluded_tenants", Value::array(
-                        a.excluded_tenants.iter().map(|t| Value::string(t)).collect::<Vec<_>>(),
-                    )),
+                    (
+                        "generator_type",
+                        Value::string(a.generator_type.to_string()),
+                    ),
+                    (
+                        "chart_path",
+                        match &a.chart_path {
+                            Some(p) => Value::string(p),
+                            None => Value::Null,
+                        },
+                    ),
+                    (
+                        "value_files",
+                        Value::array(
+                            a.value_files
+                                .iter()
+                                .map(|v| Value::string(v))
+                                .collect::<Vec<_>>(),
+                        ),
+                    ),
+                    (
+                        "excluded_tenants",
+                        Value::array(
+                            a.excluded_tenants
+                                .iter()
+                                .map(|t| Value::string(t))
+                                .collect::<Vec<_>>(),
+                        ),
+                    ),
                 ])
             })
             .collect::<Vec<_>>(),
@@ -418,11 +440,14 @@ pub fn charts_to_value(charts: &[crate::helm::ChartInfo]) -> Value {
                     ("name", Value::string(&c.name)),
                     ("version", Value::string(&c.version)),
                     ("chart_type", Value::string(c.chart_type.to_string())),
-                    ("description", if c.description.is_empty() {
-                        Value::Null
-                    } else {
-                        Value::string(&c.description)
-                    }),
+                    (
+                        "description",
+                        if c.description.is_empty() {
+                            Value::Null
+                        } else {
+                            Value::string(&c.description)
+                        },
+                    ),
                 ])
             })
             .collect::<Vec<_>>(),
@@ -435,21 +460,45 @@ pub fn environments_to_value(
     taxonomy: &crate::environments::Taxonomy,
 ) -> Value {
     Value::from_pairs([
-        ("tenants", Value::array(
-            taxonomy.tenants.iter().map(|t| Value::string(t)).collect::<Vec<_>>(),
-        )),
-        ("environments", Value::array(
-            taxonomy.environments.iter().map(|e| Value::string(e)).collect::<Vec<_>>(),
-        )),
-        ("cloud_providers", Value::array(
-            taxonomy.cloud_providers.iter().map(|c| Value::string(c)).collect::<Vec<_>>(),
-        )),
+        (
+            "tenants",
+            Value::array(
+                taxonomy
+                    .tenants
+                    .iter()
+                    .map(|t| Value::string(t))
+                    .collect::<Vec<_>>(),
+            ),
+        ),
+        (
+            "environments",
+            Value::array(
+                taxonomy
+                    .environments
+                    .iter()
+                    .map(|e| Value::string(e))
+                    .collect::<Vec<_>>(),
+            ),
+        ),
+        (
+            "cloud_providers",
+            Value::array(
+                taxonomy
+                    .cloud_providers
+                    .iter()
+                    .map(|c| Value::string(c))
+                    .collect::<Vec<_>>(),
+            ),
+        ),
         ("regions", {
-            let map: IndexMap<Arc<str>, Value> = taxonomy.regions.iter()
+            let map: IndexMap<Arc<str>, Value> = taxonomy
+                .regions
+                .iter()
                 .map(|(cloud, regions)| {
-                    (Arc::from(cloud.as_str()), Value::array(
-                        regions.iter().map(|r| Value::string(r)).collect::<Vec<_>>(),
-                    ))
+                    (
+                        Arc::from(cloud.as_str()),
+                        Value::array(regions.iter().map(|r| Value::string(r)).collect::<Vec<_>>()),
+                    )
                 })
                 .collect();
             Value::map(map)
@@ -558,10 +607,7 @@ mod tests {
         }];
 
         let mut regions = BTreeMap::new();
-        regions.insert(
-            "AWS".to_string(),
-            BTreeSet::from(["us-east-2".to_string()]),
-        );
+        regions.insert("AWS".to_string(), BTreeSet::from(["us-east-2".to_string()]));
 
         let taxonomy = Taxonomy {
             tenants: BTreeSet::from(["tenant-a".to_string()]),
@@ -640,18 +686,11 @@ mod tests {
         assert_eq!(summary.get("appsets_count").unwrap().as_i64().unwrap(), 1);
         assert_eq!(summary.get("charts_count").unwrap().as_i64().unwrap(), 2);
         assert_eq!(
-            summary
-                .get("config_paths_count")
-                .unwrap()
-                .as_i64()
-                .unwrap(),
+            summary.get("config_paths_count").unwrap().as_i64().unwrap(),
             1
         );
         assert_eq!(summary.get("edges_count").unwrap().as_i64().unwrap(), 3);
-        assert_eq!(
-            summary.get("tenants_count").unwrap().as_i64().unwrap(),
-            1
-        );
+        assert_eq!(summary.get("tenants_count").unwrap().as_i64().unwrap(), 1);
 
         // Generator type breakdown
         let gen = summary.get("generators_by_type").unwrap();

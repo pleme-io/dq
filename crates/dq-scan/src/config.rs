@@ -48,16 +48,9 @@ impl Default for ScanConfig {
     fn default() -> Self {
         Self {
             environments_dir: "environments".to_string(),
-            appset_dir_markers: vec![
-                "cluster-generator".to_string(),
-                "git-generator".to_string(),
-            ],
+            appset_dir_markers: vec!["cluster-generator".to_string(), "git-generator".to_string()],
             chart_filename: "Chart.yaml".to_string(),
-            extensions: vec![
-                "yaml".to_string(),
-                "yml".to_string(),
-                "json".to_string(),
-            ],
+            extensions: vec!["yaml".to_string(), "yml".to_string(), "json".to_string()],
             env_dir_type_map: HashMap::from([
                 ("helm_values_files".to_string(), "helm_values".to_string()),
                 ("argocd".to_string(), "argocd_config".to_string()),
@@ -171,7 +164,9 @@ mod tests {
         assert_eq!(config.environments_dir, "environments");
         assert_eq!(config.chart_filename, "Chart.yaml");
         assert!(config.extensions.contains(&"yaml".to_string()));
-        assert!(config.appset_dir_markers.contains(&"cluster-generator".to_string()));
+        assert!(config
+            .appset_dir_markers
+            .contains(&"cluster-generator".to_string()));
     }
 
     #[test]
@@ -289,11 +284,7 @@ env_dir_type_map:
     #[test]
     fn yaml_takes_precedence_over_json_when_both_present() {
         let dir = tempfile::tempdir().unwrap();
-        std::fs::write(
-            dir.path().join(".dq.yaml"),
-            "environments_dir: from-yaml\n",
-        )
-        .unwrap();
+        std::fs::write(dir.path().join(".dq.yaml"), "environments_dir: from-yaml\n").unwrap();
         std::fs::write(
             dir.path().join(".dq.json"),
             r#"{"environments_dir": "from-json"}"#,

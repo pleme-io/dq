@@ -123,11 +123,12 @@ pub fn discover_files<F: FileSystem>(
 }
 
 /// Classify a file path into a semantic category.
-fn classify_file(path: &Path, config: &ScanConfig, appset_markers: &HashSet<String>) -> FileCategory {
-    let file_name = path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("");
+fn classify_file(
+    path: &Path,
+    config: &ScanConfig,
+    appset_markers: &HashSet<String>,
+) -> FileCategory {
+    let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
 
     // Chart.yaml detection
     if file_name == config.chart_filename {
@@ -212,9 +213,15 @@ mod tests {
     fn discover_yaml_files() {
         let mut fs = MemoryFs::new();
         let root = PathBuf::from("/repo");
-        fs.add_file("/repo/argocd-app/cluster-generator/web-generator.yaml", b"apiVersion: argoproj.io/v1alpha1".to_vec());
+        fs.add_file(
+            "/repo/argocd-app/cluster-generator/web-generator.yaml",
+            b"apiVersion: argoproj.io/v1alpha1".to_vec(),
+        );
         fs.add_file("/repo/charts/web/Chart.yaml", b"apiVersion: v2".to_vec());
-        fs.add_file("/repo/environments/tenant-a/production/aws/helm_values_files/us-east-2/values.yaml", b"key: value".to_vec());
+        fs.add_file(
+            "/repo/environments/tenant-a/production/aws/helm_values_files/us-east-2/values.yaml",
+            b"key: value".to_vec(),
+        );
         fs.add_file("/repo/README.md", b"# readme".to_vec());
 
         let config = ScanConfig::default();
@@ -222,7 +229,9 @@ mod tests {
 
         assert_eq!(files.len(), 3);
 
-        let appset = files.iter().find(|f| f.category == FileCategory::ApplicationSet);
+        let appset = files
+            .iter()
+            .find(|f| f.category == FileCategory::ApplicationSet);
         assert!(appset.is_some());
 
         let chart = files.iter().find(|f| f.category == FileCategory::Chart);
@@ -236,7 +245,8 @@ mod tests {
     fn classify_config_json() {
         let config = ScanConfig::default();
         let markers = config.appset_marker_set();
-        let path = Path::new("/repo/environments/tenant-a/production/aws/argocd/us-east-2/config.json");
+        let path =
+            Path::new("/repo/environments/tenant-a/production/aws/argocd/us-east-2/config.json");
         assert_eq!(classify_file(path, &config, &markers), FileCategory::Config);
     }
 

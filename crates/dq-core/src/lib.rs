@@ -14,10 +14,10 @@
 //!
 //! All operations in dq-merge, dq-query, dq-terragrunt operate on this type.
 
-pub mod value;
-pub mod path;
 pub mod error;
+pub mod path;
+pub mod value;
 
-pub use value::Value;
-pub use path::Path;
 pub use error::Error;
+pub use path::Path;
+pub use value::Value;

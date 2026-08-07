@@ -11,8 +11,7 @@ impl Format for HclFormat {
     fn parse(&self, input: &[u8]) -> Result<Value, Error> {
         let s = std::str::from_utf8(input)
             .map_err(|e| Error::Parse(format!("HCL: invalid UTF-8: {e}")))?;
-        let body: hcl::Body = hcl::from_str(s)
-            .map_err(|e| Error::Parse(format!("HCL: {e}")))?;
+        let body: hcl::Body = hcl::from_str(s).map_err(|e| Error::Parse(format!("HCL: {e}")))?;
         Ok(from_hcl_body(&body))
     }
 
@@ -36,9 +35,8 @@ fn from_hcl_body(body: &hcl::Body) -> Value {
             }
             hcl::Structure::Block(block) => {
                 let block_type: Arc<str> = Arc::from(block.identifier.as_str());
-                let labels: Vec<Arc<str>> = block.labels.iter()
-                    .map(|l| Arc::from(l.as_str()))
-                    .collect();
+                let labels: Vec<Arc<str>> =
+                    block.labels.iter().map(|l| Arc::from(l.as_str())).collect();
                 let body = from_hcl_body(&block.body);
                 let body_map = match body {
                     Value::Map(m) => m,
@@ -87,16 +85,19 @@ fn to_hcl_body(value: &Value) -> hcl::Body {
         Value::Map(m) => push_map_to_structures(&mut structures, m),
         Value::Block(b) => push_map_to_structures(&mut structures, &b.body),
         _ => {
-            structures.push(hcl::Structure::Attribute(
-                hcl::Attribute::new("value", to_hcl_expression(value)),
-            ));
+            structures.push(hcl::Structure::Attribute(hcl::Attribute::new(
+                "value",
+                to_hcl_expression(value),
+            )));
         }
     }
     hcl::Body(structures)
 }
 
 fn make_hcl_block(key: &str, b: &dq_core::value::Block) -> hcl::Block {
-    let labels: Vec<hcl::BlockLabel> = b.labels.iter()
+    let labels: Vec<hcl::BlockLabel> = b
+        .labels
+        .iter()
         .map(|l| hcl::BlockLabel::String(l.to_string()))
         .collect();
     let mut body_structures = Vec::new();
@@ -111,9 +112,10 @@ fn make_hcl_block(key: &str, b: &dq_core::value::Block) -> hcl::Block {
 fn to_hcl_structure(key: &str, value: &Value) -> hcl::Structure {
     match value {
         Value::Block(b) => hcl::Structure::Block(make_hcl_block(key, b)),
-        _ => hcl::Structure::Attribute(
-            hcl::Attribute::new(hcl::Identifier::unchecked(key), to_hcl_expression(value)),
-        ),
+        _ => hcl::Structure::Attribute(hcl::Attribute::new(
+            hcl::Identifier::unchecked(key),
+            to_hcl_expression(value),
+        )),
     }
 }
 
@@ -131,9 +133,7 @@ fn to_hcl_expression(value: &Value) -> hcl::Expression {
             use base64::Engine;
             hcl::Expression::String(base64::engine::general_purpose::STANDARD.encode(b.as_ref()))
         }
-        Value::Array(a) => {
-            hcl::Expression::Array(a.iter().map(to_hcl_expression).collect())
-        }
+        Value::Array(a) => hcl::Expression::Array(a.iter().map(to_hcl_expression).collect()),
         Value::Map(m) => {
             let obj: Vec<(hcl::ObjectKey, hcl::Expression)> = m
                 .iter()
@@ -183,16 +183,21 @@ fn from_hcl_expression(expr: &hcl::Expression) -> Value {
         hcl::Expression::Null => Value::Null,
         hcl::Expression::Bool(b) => Value::Bool(*b),
         hcl::Expression::Number(n) => {
-            if let Some(i) = n.as_i64() { Value::Int(i) }
-            else if let Some(f) = n.as_f64() { Value::Float(f) }
-            else { Value::string(n.to_string()) }
+            if let Some(i) = n.as_i64() {
+                Value::Int(i)
+            } else if let Some(f) = n.as_f64() {
+                Value::Float(f)
+            } else {
+                Value::string(n.to_string())
+            }
         }
         hcl::Expression::String(s) => Value::string(s.as_str()),
         hcl::Expression::Array(arr) => {
             Value::array(arr.iter().map(from_hcl_expression).collect::<Vec<_>>())
         }
         hcl::Expression::Object(obj) => {
-            let map: IndexMap<Arc<str>, Value> = obj.iter()
+            let map: IndexMap<Arc<str>, Value> = obj
+                .iter()
                 .map(|(k, v)| {
                     let key = match k {
                         hcl::ObjectKey::Identifier(id) => Arc::from(id.as_str()),
@@ -207,15 +212,15 @@ fn from_hcl_expression(expr: &hcl::Expression) -> Value {
         // Preserve complex expressions as structured data instead of naive
         // stringification. Uses `__expr` metadata key to mark the expression type.
         // Structured operands are extracted where possible.
-        hcl::Expression::Variable(var) => {
-            Value::from_pairs([
-                ("__expr", Value::string("variable")),
-                ("name", Value::string(var.as_str())),
-            ])
-        }
+        hcl::Expression::Variable(var) => Value::from_pairs([
+            ("__expr", Value::string("variable")),
+            ("name", Value::string(var.as_str())),
+        ]),
         hcl::Expression::Traversal(traversal) => {
             let root = from_hcl_expression(&traversal.expr);
-            let ops: Vec<Value> = traversal.operators.iter()
+            let ops: Vec<Value> = traversal
+                .operators
+                .iter()
                 .map(|op| match op {
                     hcl::TraversalOperator::GetAttr(id) => Value::from_pairs([
                         ("type", Value::string("get_attr")),
@@ -225,15 +230,13 @@ fn from_hcl_expression(expr: &hcl::Expression) -> Value {
                         ("type", Value::string("index")),
                         ("expr", from_hcl_expression(expr)),
                     ]),
-                    hcl::TraversalOperator::AttrSplat => Value::from_pairs([
-                        ("type", Value::string("attr_splat")),
-                    ]),
-                    hcl::TraversalOperator::FullSplat => Value::from_pairs([
-                        ("type", Value::string("full_splat")),
-                    ]),
-                    _ => Value::from_pairs([
-                        ("type", Value::string("unknown_op")),
-                    ]),
+                    hcl::TraversalOperator::AttrSplat => {
+                        Value::from_pairs([("type", Value::string("attr_splat"))])
+                    }
+                    hcl::TraversalOperator::FullSplat => {
+                        Value::from_pairs([("type", Value::string("full_splat"))])
+                    }
+                    _ => Value::from_pairs([("type", Value::string("unknown_op"))]),
                 })
                 .collect();
             Value::from_pairs([
@@ -246,41 +249,38 @@ fn from_hcl_expression(expr: &hcl::Expression) -> Value {
             let full_name = if func_call.name.namespace.is_empty() {
                 func_call.name.name.as_str().to_string()
             } else {
-                let ns: Vec<&str> = func_call.name.namespace.iter()
+                let ns: Vec<&str> = func_call
+                    .name
+                    .namespace
+                    .iter()
                     .map(|id| id.as_str())
                     .collect();
                 format!("{}::{}", ns.join("::"), func_call.name.name.as_str())
             };
-            let args: Vec<Value> = func_call.args.iter()
-                .map(from_hcl_expression)
-                .collect();
+            let args: Vec<Value> = func_call.args.iter().map(from_hcl_expression).collect();
             Value::from_pairs([
                 ("__expr", Value::string("func_call")),
                 ("name", Value::string(full_name)),
                 ("args", Value::array(args)),
             ])
         }
-        hcl::Expression::Conditional(cond) => {
-            Value::from_pairs([
-                ("__expr", Value::string("conditional")),
-                ("condition", from_hcl_expression(&cond.cond_expr)),
-                ("true_val", from_hcl_expression(&cond.true_expr)),
-                ("false_val", from_hcl_expression(&cond.false_expr)),
-            ])
-        }
-        hcl::Expression::Operation(op) => {
-            match op.as_ref() {
-                hcl::Operation::Binary(bin) => Value::from_pairs([
-                    ("__expr", Value::string("binary_op")),
-                    ("lhs", from_hcl_expression(&bin.lhs_expr)),
-                    ("rhs", from_hcl_expression(&bin.rhs_expr)),
-                ]),
-                hcl::Operation::Unary(un) => Value::from_pairs([
-                    ("__expr", Value::string("unary_op")),
-                    ("expr", from_hcl_expression(&un.expr)),
-                ]),
-            }
-        }
+        hcl::Expression::Conditional(cond) => Value::from_pairs([
+            ("__expr", Value::string("conditional")),
+            ("condition", from_hcl_expression(&cond.cond_expr)),
+            ("true_val", from_hcl_expression(&cond.true_expr)),
+            ("false_val", from_hcl_expression(&cond.false_expr)),
+        ]),
+        hcl::Expression::Operation(op) => match op.as_ref() {
+            hcl::Operation::Binary(bin) => Value::from_pairs([
+                ("__expr", Value::string("binary_op")),
+                ("lhs", from_hcl_expression(&bin.lhs_expr)),
+                ("rhs", from_hcl_expression(&bin.rhs_expr)),
+            ]),
+            hcl::Operation::Unary(un) => Value::from_pairs([
+                ("__expr", Value::string("unary_op")),
+                ("expr", from_hcl_expression(&un.expr)),
+            ]),
+        },
         hcl::Expression::ForExpr(for_expr) => {
             let mut parts = vec![
                 ("__expr", Value::string("for_expr")),
@@ -295,10 +295,15 @@ fn from_hcl_expression(expr: &hcl::Expression) -> Value {
         hcl::Expression::TemplateExpr(tmpl) => {
             // TemplateExpr wraps a string template like "${var.name}-suffix"
             // Serialize the template to string to preserve it
-            let tmpl_str = hcl::to_string(&hcl::Attribute::new("_t", hcl::Expression::TemplateExpr(tmpl.clone())))
-                .unwrap_or_default();
+            let tmpl_str = hcl::to_string(&hcl::Attribute::new(
+                "_t",
+                hcl::Expression::TemplateExpr(tmpl.clone()),
+            ))
+            .unwrap_or_default();
             // Extract just the value part after "= "
-            let val = tmpl_str.split(" = ").nth(1)
+            let val = tmpl_str
+                .split(" = ")
+                .nth(1)
                 .map(|s| s.trim().trim_matches('"'))
                 .unwrap_or("");
             Value::from_pairs([
@@ -341,16 +346,21 @@ pub fn from_hcl_value(v: &hcl::value::Value) -> Value {
         hcl::value::Value::Null => Value::Null,
         hcl::value::Value::Bool(b) => Value::Bool(*b),
         hcl::value::Value::Number(n) => {
-            if let Some(i) = n.as_i64() { Value::Int(i) }
-            else if let Some(f) = n.as_f64() { Value::Float(f) }
-            else { Value::string(n.to_string()) }
+            if let Some(i) = n.as_i64() {
+                Value::Int(i)
+            } else if let Some(f) = n.as_f64() {
+                Value::Float(f)
+            } else {
+                Value::string(n.to_string())
+            }
         }
         hcl::value::Value::String(s) => Value::string(s.as_str()),
         hcl::value::Value::Array(a) => {
             Value::array(a.iter().map(from_hcl_value).collect::<Vec<_>>())
         }
         hcl::value::Value::Object(m) => {
-            let map: IndexMap<Arc<str>, Value> = m.iter()
+            let map: IndexMap<Arc<str>, Value> = m
+                .iter()
                 .map(|(k, v)| (Arc::from(k.as_str()), from_hcl_value(v)))
                 .collect();
             Value::map(map)

@@ -135,7 +135,8 @@ impl TerragruntConfig {
 
             config.terraform = Some(TerraformBlock {
                 source: tf.get("source").and_then(|v| v.as_str()).map(String::from),
-                extra_arguments: tf.get("extra_arguments")
+                extra_arguments: tf
+                    .get("extra_arguments")
                     .and_then(|v| v.as_array())
                     .map(|a| a.to_vec())
                     .unwrap_or_default(),
@@ -148,7 +149,11 @@ impl TerragruntConfig {
         // Extract remote_state block
         if let Some(rs) = raw.get("remote_state") {
             config.remote_state = Some(RemoteStateBlock {
-                backend: rs.get("backend").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                backend: rs
+                    .get("backend")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string(),
                 config: rs.get("config").cloned().unwrap_or(Value::Null),
                 generate: rs.get("generate").cloned(),
                 raw: rs.clone(),
@@ -158,35 +163,49 @@ impl TerragruntConfig {
         // Extract include blocks
         if let Some(inc) = raw.get("include") {
             extract_labeled_blocks(inc, |label, val| {
-                config.includes.insert(label.clone(), IncludeBlock {
-                    label: label.clone(),
-                    path: val.get("path").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                    expose: val.get("expose").and_then(|v| v.as_bool()).unwrap_or(false),
-                    merge_strategy: match val.get("merge_strategy").and_then(|v| v.as_str()) {
-                        Some("deep") => MergeStrategy::Deep,
-                        Some("no_merge") => MergeStrategy::NoMerge,
-                        _ => MergeStrategy::Shallow,
+                config.includes.insert(
+                    label.clone(),
+                    IncludeBlock {
+                        label: label.clone(),
+                        path: val
+                            .get("path")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        expose: val.get("expose").and_then(|v| v.as_bool()).unwrap_or(false),
+                        merge_strategy: match val.get("merge_strategy").and_then(|v| v.as_str()) {
+                            Some("deep") => MergeStrategy::Deep,
+                            Some("no_merge") => MergeStrategy::NoMerge,
+                            _ => MergeStrategy::Shallow,
+                        },
+                        raw: val.clone(),
                     },
-                    raw: val.clone(),
-                });
+                );
             });
         }
 
         // Extract dependency blocks
         if let Some(dep) = raw.get("dependency") {
             extract_labeled_blocks(dep, |label, val| {
-                let config_path = val.get("config_path")
+                let config_path = val
+                    .get("config_path")
                     .and_then(|v| v.as_str())
                     .map(PathBuf::from)
                     .unwrap_or_default();
-                config.dependencies.insert(label.clone(), DependencyBlock {
-                    label: label.clone(),
-                    config_path,
-                    enabled: val.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true),
-                    skip_outputs: val.get("skip_outputs").and_then(|v| v.as_bool()).unwrap_or(false),
-                    mock_outputs: val.get("mock_outputs").cloned(),
-                    raw: val.clone(),
-                });
+                config.dependencies.insert(
+                    label.clone(),
+                    DependencyBlock {
+                        label: label.clone(),
+                        config_path,
+                        enabled: val.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true),
+                        skip_outputs: val
+                            .get("skip_outputs")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false),
+                        mock_outputs: val.get("mock_outputs").cloned(),
+                        raw: val.clone(),
+                    },
+                );
             });
         }
 
@@ -218,13 +237,28 @@ impl TerragruntConfig {
         // Extract generate blocks
         if let Some(gen) = raw.get("generate") {
             extract_labeled_blocks(gen, |label, val| {
-                config.generates.insert(label.clone(), GenerateBlock {
-                    label: label.clone(),
-                    path: val.get("path").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                    contents: val.get("contents").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                    if_exists: val.get("if_exists").and_then(|v| v.as_str()).unwrap_or("overwrite_terragrunt").to_string(),
-                    raw: val.clone(),
-                });
+                config.generates.insert(
+                    label.clone(),
+                    GenerateBlock {
+                        label: label.clone(),
+                        path: val
+                            .get("path")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        contents: val
+                            .get("contents")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        if_exists: val
+                            .get("if_exists")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("overwrite_terragrunt")
+                            .to_string(),
+                        raw: val.clone(),
+                    },
+                );
             });
         }
 
@@ -233,7 +267,9 @@ impl TerragruntConfig {
 
     /// All config paths this module depends on (from dependency + dependencies blocks).
     pub fn all_dependency_paths(&self) -> Vec<PathBuf> {
-        let mut paths: Vec<PathBuf> = self.dependencies.values()
+        let mut paths: Vec<PathBuf> = self
+            .dependencies
+            .values()
             .filter(|d| d.enabled)
             .map(|d| d.config_path.clone())
             .collect();
@@ -265,7 +301,9 @@ where
 {
     match value {
         Value::Block(b) => {
-            let label = b.labels.first()
+            let label = b
+                .labels
+                .first()
                 .cloned()
                 .unwrap_or_else(|| Arc::from("default"));
             handler(&label, value);
@@ -273,7 +311,9 @@ where
         Value::Array(arr) => {
             for item in arr.iter() {
                 if let Value::Block(b) = item {
-                    let label = b.labels.first()
+                    let label = b
+                        .labels
+                        .first()
                         .cloned()
                         .unwrap_or_else(|| Arc::from("default"));
                     handler(&label, item);
@@ -325,20 +365,28 @@ mod tests {
     #[test]
     fn parse_terraform_block() {
         let tmp = tempfile::tempdir().unwrap();
-        let path = write_hcl(tmp.path(), r#"
+        let path = write_hcl(
+            tmp.path(),
+            r#"
 terraform {
   source = "tfr:///modules/vpc?version=1.0.0"
 }
-"#);
+"#,
+        );
         let config = TerragruntConfig::from_path(&path).unwrap();
         let tf = config.terraform.unwrap();
-        assert_eq!(tf.source.as_deref(), Some("tfr:///modules/vpc?version=1.0.0"));
+        assert_eq!(
+            tf.source.as_deref(),
+            Some("tfr:///modules/vpc?version=1.0.0")
+        );
     }
 
     #[test]
     fn parse_remote_state_block() {
         let tmp = tempfile::tempdir().unwrap();
-        let path = write_hcl(tmp.path(), r#"
+        let path = write_hcl(
+            tmp.path(),
+            r#"
 remote_state {
   backend = "s3"
   config = {
@@ -346,7 +394,8 @@ remote_state {
     region = "us-east-1"
   }
 }
-"#);
+"#,
+        );
         let config = TerragruntConfig::from_path(&path).unwrap();
         let rs = config.remote_state.unwrap();
         assert_eq!(rs.backend, "s3");
@@ -363,13 +412,16 @@ remote_state {
     #[test]
     fn parse_include_block() {
         let tmp = tempfile::tempdir().unwrap();
-        let path = write_hcl(tmp.path(), r#"
+        let path = write_hcl(
+            tmp.path(),
+            r#"
 include "root" {
   path   = find_in_parent_folders()
   expose = true
   merge_strategy = "deep"
 }
-"#);
+"#,
+        );
         let config = TerragruntConfig::from_path(&path).unwrap();
         assert_eq!(config.includes.len(), 1);
         let inc = config.includes.get("root").unwrap();
@@ -381,12 +433,15 @@ include "root" {
     #[test]
     fn parse_dependency_block() {
         let tmp = tempfile::tempdir().unwrap();
-        let path = write_hcl(tmp.path(), r#"
+        let path = write_hcl(
+            tmp.path(),
+            r#"
 dependency "vpc" {
   config_path = "../vpc"
   skip_outputs = true
 }
-"#);
+"#,
+        );
         let config = TerragruntConfig::from_path(&path).unwrap();
         assert_eq!(config.dependencies.len(), 1);
         let dep = config.dependencies.get("vpc").unwrap();
@@ -399,28 +454,43 @@ dependency "vpc" {
     #[test]
     fn parse_dependencies_block() {
         let tmp = tempfile::tempdir().unwrap();
-        let path = write_hcl(tmp.path(), r#"
+        let path = write_hcl(
+            tmp.path(),
+            r#"
 dependencies {
   paths = ["../vpc", "../rds", "../iam"]
 }
-"#);
+"#,
+        );
         let config = TerragruntConfig::from_path(&path).unwrap();
         assert_eq!(config.dependency_paths.len(), 3);
-        assert_eq!(config.dependency_paths[0], std::path::PathBuf::from("../vpc"));
-        assert_eq!(config.dependency_paths[1], std::path::PathBuf::from("../rds"));
-        assert_eq!(config.dependency_paths[2], std::path::PathBuf::from("../iam"));
+        assert_eq!(
+            config.dependency_paths[0],
+            std::path::PathBuf::from("../vpc")
+        );
+        assert_eq!(
+            config.dependency_paths[1],
+            std::path::PathBuf::from("../rds")
+        );
+        assert_eq!(
+            config.dependency_paths[2],
+            std::path::PathBuf::from("../iam")
+        );
     }
 
     #[test]
     fn parse_generate_block() {
         let tmp = tempfile::tempdir().unwrap();
-        let path = write_hcl(tmp.path(), r#"
+        let path = write_hcl(
+            tmp.path(),
+            r#"
 generate "backend" {
   path      = "backend.tf"
   if_exists = "overwrite"
   contents  = "terraform { backend \"s3\" {} }"
 }
-"#);
+"#,
+        );
         let config = TerragruntConfig::from_path(&path).unwrap();
         assert_eq!(config.generates.len(), 1);
         let gen = config.generates.get("backend").unwrap();
@@ -432,7 +502,9 @@ generate "backend" {
     #[test]
     fn parse_locals_and_inputs() {
         let tmp = tempfile::tempdir().unwrap();
-        let path = write_hcl(tmp.path(), r#"
+        let path = write_hcl(
+            tmp.path(),
+            r#"
 locals {
   region = "us-east-1"
   env    = "prod"
@@ -442,7 +514,8 @@ inputs = {
   vpc_cidr = "10.0.0.0/16"
   enable_nat = true
 }
-"#);
+"#,
+        );
         let config = TerragruntConfig::from_path(&path).unwrap();
         assert_eq!(config.locals.len(), 2);
         assert_eq!(
@@ -467,7 +540,9 @@ inputs = {
     #[test]
     fn parse_hooks() {
         let tmp = tempfile::tempdir().unwrap();
-        let path = write_hcl(tmp.path(), r#"
+        let path = write_hcl(
+            tmp.path(),
+            r#"
 terraform {
   source = "."
 
@@ -481,21 +556,30 @@ terraform {
     execute  = ["rm", "-rf", ".terraform"]
   }
 }
-"#);
+"#,
+        );
         let config = TerragruntConfig::from_path(&path).unwrap();
         let tf = config.terraform.unwrap();
         assert_eq!(tf.before_hooks.len(), 1);
         assert_eq!(tf.after_hooks.len(), 1);
         // Verify the before_hook has the right content
         let bh = &tf.before_hooks[0];
-        assert!(bh.get("commands").is_some() || bh.get("execute").is_some()
-            || bh.as_block().map(|b| b.labels.iter().any(|l| l.as_ref() == "tflint")).unwrap_or(false));
+        assert!(
+            bh.get("commands").is_some()
+                || bh.get("execute").is_some()
+                || bh
+                    .as_block()
+                    .map(|b| b.labels.iter().any(|l| l.as_ref() == "tflint"))
+                    .unwrap_or(false)
+        );
     }
 
     #[test]
     fn all_dependency_paths_composition() {
         let tmp = tempfile::tempdir().unwrap();
-        let path = write_hcl(tmp.path(), r#"
+        let path = write_hcl(
+            tmp.path(),
+            r#"
 dependency "vpc" {
   config_path = "../vpc"
 }
@@ -508,7 +592,8 @@ dependency "rds" {
 dependencies {
   paths = ["../iam"]
 }
-"#);
+"#,
+        );
         let config = TerragruntConfig::from_path(&path).unwrap();
         let all_paths = config.all_dependency_paths();
         // vpc is enabled, rds is disabled, iam comes from dependencies block
