@@ -38,7 +38,10 @@ mod tests {
 
     #[test]
     fn display_type_error() {
-        let e = Error::TypeError { expected: "string", actual: "number" };
+        let e = Error::TypeError {
+            expected: "string",
+            actual: "number",
+        };
         assert_eq!(e.to_string(), "type error: expected string, got number");
     }
 
@@ -50,13 +53,19 @@ mod tests {
 
     #[test]
     fn display_index_out_of_bounds() {
-        let e = Error::IndexOutOfBounds { index: 5, length: 3 };
+        let e = Error::IndexOutOfBounds {
+            index: 5,
+            length: 3,
+        };
         assert_eq!(e.to_string(), "index out of bounds: 5 (length 3)");
     }
 
     #[test]
     fn display_merge_conflict() {
-        let e = Error::MergeConflict { path: "a.b".into(), message: "both modified".into() };
+        let e = Error::MergeConflict {
+            path: "a.b".into(),
+            message: "both modified".into(),
+        };
         assert_eq!(e.to_string(), "merge conflict at a.b: both modified");
     }
 

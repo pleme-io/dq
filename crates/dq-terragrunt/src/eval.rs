@@ -78,9 +78,7 @@ fn find_in_parent_folders(args: FuncArgs) -> Result<hcl::Value, String> {
         }
         let candidate = dir.join(&filename);
         if candidate.exists() {
-            return Ok(hcl::Value::from(
-                candidate.to_string_lossy().into_owned(),
-            ));
+            return Ok(hcl::Value::from(candidate.to_string_lossy().into_owned()));
         }
     }
 }
@@ -195,9 +193,11 @@ fn evaluate_inner(value: &Value, eval_ctx: &TerragruntEvalContext) -> Value {
             }
             Value::map(new_map)
         }
-        Value::Array(a) => {
-            Value::array(a.iter().map(|v| evaluate_inner(v, eval_ctx)).collect::<Vec<_>>())
-        }
+        Value::Array(a) => Value::array(
+            a.iter()
+                .map(|v| evaluate_inner(v, eval_ctx))
+                .collect::<Vec<_>>(),
+        ),
         Value::Block(b) => {
             let mut new_body = indexmap::IndexMap::new();
             for (k, v) in b.body.iter() {
@@ -262,10 +262,7 @@ fn try_evaluate_func_call(expr_value: &Value, eval_ctx: &TerragruntEvalContext) 
     };
 
     // Evaluate arguments first (they may themselves be expressions)
-    let evaluated_args: Vec<Value> = args
-        .iter()
-        .map(|a| evaluate_inner(a, eval_ctx))
-        .collect();
+    let evaluated_args: Vec<Value> = args.iter().map(|a| evaluate_inner(a, eval_ctx)).collect();
 
     // Build a mini HCL expression string and evaluate through the context
     let arg_strs: Vec<String> = evaluated_args
@@ -372,8 +369,7 @@ mod tests {
     fn eval_get_parent_terragrunt_dir() {
         let module_dir = PathBuf::from("/tmp/infra/modules/vpc");
         let include_dir = PathBuf::from("/tmp/infra");
-        let eval_ctx =
-            TerragruntEvalContext::new(module_dir.clone(), Some(include_dir.clone()));
+        let eval_ctx = TerragruntEvalContext::new(module_dir.clone(), Some(include_dir.clone()));
         eval_ctx.install_thread_state();
 
         let expr = Value::from_pairs([
@@ -390,8 +386,7 @@ mod tests {
     fn eval_path_relative_to_include() {
         let module_dir = PathBuf::from("/tmp/infra/envs/prod/vpc");
         let include_dir = PathBuf::from("/tmp/infra");
-        let eval_ctx =
-            TerragruntEvalContext::new(module_dir.clone(), Some(include_dir.clone()));
+        let eval_ctx = TerragruntEvalContext::new(module_dir.clone(), Some(include_dir.clone()));
         eval_ctx.install_thread_state();
 
         let expr = Value::from_pairs([
@@ -457,10 +452,7 @@ mod tests {
         let plain = Value::string("hello");
         assert_eq!(evaluate_value(&plain, &eval_ctx), Value::string("hello"));
 
-        let map = Value::from_pairs([
-            ("key", Value::string("value")),
-            ("num", Value::int(42)),
-        ]);
+        let map = Value::from_pairs([("key", Value::string("value")), ("num", Value::int(42))]);
         assert_eq!(evaluate_value(&map, &eval_ctx), map);
     }
 
@@ -471,13 +463,7 @@ mod tests {
 
     #[test]
     fn eval_pathdiff_relative() {
-        assert_eq!(
-            pathdiff(Path::new("/a/b/c/d"), Path::new("/a/b")),
-            "c/d"
-        );
-        assert_eq!(
-            pathdiff(Path::new("/a/b"), Path::new("/a/b/c/d")),
-            "../.."
-        );
+        assert_eq!(pathdiff(Path::new("/a/b/c/d"), Path::new("/a/b")), "c/d");
+        assert_eq!(pathdiff(Path::new("/a/b"), Path::new("/a/b/c/d")), "../..");
     }
 }

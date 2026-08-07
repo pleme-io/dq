@@ -9,8 +9,8 @@ impl Format for YamlFormat {
     fn parse(&self, input: &[u8]) -> Result<Value, Error> {
         let s = std::str::from_utf8(input)
             .map_err(|e| Error::Parse(format!("YAML: invalid UTF-8: {e}")))?;
-        let json: serde_json::Value = serde_saphyr::from_str(s)
-            .map_err(|e| Error::Parse(format!("YAML: {e}")))?;
+        let json: serde_json::Value =
+            serde_saphyr::from_str(s).map_err(|e| Error::Parse(format!("YAML: {e}")))?;
         Ok(Value::from(json))
     }
 

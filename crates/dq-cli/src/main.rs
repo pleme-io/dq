@@ -245,7 +245,11 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Some(Commands::Merge { files, strategy, to_format }) => cmd_merge(files, &strategy, &to_format),
+        Some(Commands::Merge {
+            files,
+            strategy,
+            to_format,
+        }) => cmd_merge(files, &strategy, &to_format),
         Some(Commands::Diff { a, b, to_format }) => cmd_diff(&a, &b, &to_format),
         Some(Commands::Flatten { file, separator }) => cmd_flatten(&file, &separator),
         Some(Commands::Unflatten { file, separator }) => cmd_unflatten(&file, &separator),
@@ -275,19 +279,23 @@ fn cmd_query(cli: Cli) -> Result<()> {
         std::fs::read(&cli.files[0])?
     };
 
-    let from_format = cli.from_format.as_deref()
+    let from_format = cli
+        .from_format
+        .as_deref()
         .and_then(dq_formats::FormatKind::from_name)
-        .or_else(|| cli.files.first().and_then(|f| {
-            dq_formats::detect::detect_from_path(&f.to_string_lossy())
-        }))
+        .or_else(|| {
+            cli.files
+                .first()
+                .and_then(|f| dq_formats::detect::detect_from_path(&f.to_string_lossy()))
+        })
         .or_else(|| dq_formats::detect::detect_from_content(&input_bytes))
         .unwrap_or(dq_formats::FormatKind::Json);
 
     let value = dq_formats::parse(from_format, &input_bytes)?;
     let results = dq_query::query(&value, expr)?;
 
-    let to_format = dq_formats::FormatKind::from_name(&cli.to_format)
-        .unwrap_or(dq_formats::FormatKind::Json);
+    let to_format =
+        dq_formats::FormatKind::from_name(&cli.to_format).unwrap_or(dq_formats::FormatKind::Json);
 
     for result in &results {
         if cli.raw {
@@ -312,7 +320,8 @@ fn cmd_merge(files: Vec<PathBuf>, strategy: &str, to_format: &str) -> Result<()>
         other => anyhow::bail!("unknown strategy: {other}"),
     };
 
-    let values: Vec<dq_core::Value> = files.iter()
+    let values: Vec<dq_core::Value> = files
+        .iter()
         .map(|f| {
             let bytes = std::fs::read(f)?;
             dq_formats::parse_auto(&f.to_string_lossy(), &bytes)
@@ -379,7 +388,8 @@ fn cmd_terragrunt(command: TerragruntCommands) -> Result<()> {
         }
         TerragruntCommands::Render { path, format } => {
             let v = dq_terragrunt::render::render_module(&path)?;
-            let fmt = dq_formats::FormatKind::from_name(&format).unwrap_or(dq_formats::FormatKind::Json);
+            let fmt =
+                dq_formats::FormatKind::from_name(&format).unwrap_or(dq_formats::FormatKind::Json);
             let output = dq_formats::serialize(fmt, &v)?;
             std::io::Write::write_all(&mut std::io::stdout(), &output)?;
             Ok(())
@@ -394,31 +404,32 @@ fn cmd_terragrunt(command: TerragruntCommands) -> Result<()> {
                     // the module declares a source= attribute.
                     use dq_core::Value;
                     use std::sync::Arc;
-                    let records: Vec<Value> = dag.graph.node_indices().map(|idx| {
-                        let node = &dag.graph[idx];
-                        let dep_count = dag.graph.neighbors(idx).count();
-                        let dependent_count = dag
-                            .graph
-                            .neighbors_directed(idx, petgraph::Direction::Incoming)
-                            .count();
-                        let has_source = node.source.is_some();
-                        let mut obj: indexmap::IndexMap<Arc<str>, Value> =
-                            indexmap::IndexMap::new();
-                        obj.insert(
-                            Arc::from("path"),
-                            Value::string(node.relative_path.as_str()),
-                        );
-                        obj.insert(Arc::from("has_source"), Value::bool(has_source));
-                        obj.insert(
-                            Arc::from("dependency_count"),
-                            Value::int(dep_count as i64),
-                        );
-                        obj.insert(
-                            Arc::from("dependent_count"),
-                            Value::int(dependent_count as i64),
-                        );
-                        Value::map(obj)
-                    }).collect();
+                    let records: Vec<Value> = dag
+                        .graph
+                        .node_indices()
+                        .map(|idx| {
+                            let node = &dag.graph[idx];
+                            let dep_count = dag.graph.neighbors(idx).count();
+                            let dependent_count = dag
+                                .graph
+                                .neighbors_directed(idx, petgraph::Direction::Incoming)
+                                .count();
+                            let has_source = node.source.is_some();
+                            let mut obj: indexmap::IndexMap<Arc<str>, Value> =
+                                indexmap::IndexMap::new();
+                            obj.insert(
+                                Arc::from("path"),
+                                Value::string(node.relative_path.as_str()),
+                            );
+                            obj.insert(Arc::from("has_source"), Value::bool(has_source));
+                            obj.insert(Arc::from("dependency_count"), Value::int(dep_count as i64));
+                            obj.insert(
+                                Arc::from("dependent_count"),
+                                Value::int(dependent_count as i64),
+                            );
+                            Value::map(obj)
+                        })
+                        .collect();
                     let out = dq_formats::serialize(
                         dq_formats::FormatKind::Json,
                         &Value::array(records),
@@ -433,7 +444,11 @@ fn cmd_terragrunt(command: TerragruntCommands) -> Result<()> {
             }
             Ok(())
         }
-        TerragruntCommands::Deps { path, transitive, root } => {
+        TerragruntCommands::Deps {
+            path,
+            transitive,
+            root,
+        } => {
             let dag = dq_terragrunt::DependencyGraph::from_directory(&root)?;
             let deps = if transitive {
                 dag.transitive_dependencies_of(&path)
@@ -458,24 +473,21 @@ fn cmd_terragrunt(command: TerragruntCommands) -> Result<()> {
 fn cmd_scan(command: ScanCommands) -> Result<()> {
     match command {
         ScanCommands::Appsets { root } => {
-            let result = dq_scan::scan_directory(&root)
-                .map_err(|e| anyhow::anyhow!("{e}"))?;
+            let result = dq_scan::scan_directory(&root).map_err(|e| anyhow::anyhow!("{e}"))?;
             let appsets_val = dq_scan::report::appsets_to_value(&result.topology.appsets);
             let output = dq_formats::serialize(dq_formats::FormatKind::Json, &appsets_val)?;
             std::io::Write::write_all(&mut std::io::stdout(), &output)?;
             Ok(())
         }
         ScanCommands::Charts { root } => {
-            let result = dq_scan::scan_directory(&root)
-                .map_err(|e| anyhow::anyhow!("{e}"))?;
+            let result = dq_scan::scan_directory(&root).map_err(|e| anyhow::anyhow!("{e}"))?;
             let charts_val = dq_scan::report::charts_to_value(&result.topology.charts);
             let output = dq_formats::serialize(dq_formats::FormatKind::Json, &charts_val)?;
             std::io::Write::write_all(&mut std::io::stdout(), &output)?;
             Ok(())
         }
         ScanCommands::Environments { root } => {
-            let result = dq_scan::scan_directory(&root)
-                .map_err(|e| anyhow::anyhow!("{e}"))?;
+            let result = dq_scan::scan_directory(&root).map_err(|e| anyhow::anyhow!("{e}"))?;
             let env_val = dq_scan::report::environments_to_value(
                 &result.topology.config_paths,
                 &result.topology.taxonomy,
@@ -485,8 +497,7 @@ fn cmd_scan(command: ScanCommands) -> Result<()> {
             Ok(())
         }
         ScanCommands::Topology { root, format } => {
-            let result = dq_scan::scan_directory(&root)
-                .map_err(|e| anyhow::anyhow!("{e}"))?;
+            let result = dq_scan::scan_directory(&root).map_err(|e| anyhow::anyhow!("{e}"))?;
             match format.as_str() {
                 "json" => {
                     let val = dq_scan::report::to_value(&result.topology);
@@ -513,7 +524,11 @@ fn cmd_scan(command: ScanCommands) -> Result<()> {
             std::io::Write::write_all(&mut std::io::stdout(), &output)?;
             Ok(())
         }
-        ScanCommands::Viz { root, output_dir, format } => {
+        ScanCommands::Viz {
+            root,
+            output_dir,
+            format,
+        } => {
             let generated = match format.as_str() {
                 "mermaid" | "md" | "markdown" => dq_viz::generate_all_mermaid(&root, &output_dir)?,
                 _ => dq_viz::generate_all(&root, &output_dir)?,

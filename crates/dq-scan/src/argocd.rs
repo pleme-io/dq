@@ -84,8 +84,7 @@ pub fn parse_appset(value: &Value, source_file: &str) -> Result<AppSetInfo, Scan
         .and_then(|v| v.as_array())
         .unwrap_or(&[]);
 
-    let (generator_type, cluster_selectors, git_file_paths) =
-        parse_generators(generators);
+    let (generator_type, cluster_selectors, git_file_paths) = parse_generators(generators);
 
     // Extract excluded tenants from cluster selectors
     let excluded_tenants = extract_excluded_tenants(&cluster_selectors);

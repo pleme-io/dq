@@ -175,7 +175,15 @@ fn render_chart_tree(
     // Recurse into children
     if let Some(children) = parent_to_children.get(name) {
         for child in children {
-            render_chart_tree(body, child, parent_to_children, chart_map, topology, depth + 1, visited);
+            render_chart_tree(
+                body,
+                child,
+                parent_to_children,
+                chart_map,
+                topology,
+                depth + 1,
+                visited,
+            );
         }
     }
 }

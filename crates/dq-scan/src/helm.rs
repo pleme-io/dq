@@ -168,7 +168,10 @@ dependencies:
         assert_eq!(info.description, "Datadog Agent");
         assert_eq!(info.dependencies.len(), 1);
         assert_eq!(info.dependencies[0].name, "datadog");
-        assert_eq!(info.dependencies[0].repository, "https://helm.datadoghq.com");
+        assert_eq!(
+            info.dependencies[0].repository,
+            "https://helm.datadoghq.com"
+        );
     }
 
     #[test]

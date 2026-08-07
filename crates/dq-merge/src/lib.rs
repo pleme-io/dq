@@ -51,9 +51,7 @@ pub fn merge(base: &Value, override_val: &Value, strategy: Strategy) -> Value {
         Strategy::Shallow => shallow_merge(base, override_val),
         Strategy::Deep => deep_merge(base, override_val),
         Strategy::JsonMergePatch => json_merge_patch(base, override_val),
-        Strategy::Strategic { ref merge_keys } => {
-            strategic_merge(base, override_val, merge_keys)
-        }
+        Strategy::Strategic { ref merge_keys } => strategic_merge(base, override_val, merge_keys),
     }
 }
 
@@ -263,14 +261,12 @@ pub fn json_patch(target: &Value, operations: &Value) -> Result<Value, Error> {
     let ops_json: Vec<serde_json::Value> = ops_array.iter().map(|v| to_json(v)).collect();
     let ops_json_array = serde_json::Value::Array(ops_json);
 
-    let patch: json_patch::Patch = serde_json::from_value(ops_json_array).map_err(|e| {
-        Error::Parse(format!("invalid JSON Patch operations: {e}"))
-    })?;
+    let patch: json_patch::Patch = serde_json::from_value(ops_json_array)
+        .map_err(|e| Error::Parse(format!("invalid JSON Patch operations: {e}")))?;
 
     let mut doc = to_json(target);
-    json_patch::patch(&mut doc, &patch).map_err(|e| {
-        Error::Other(format!("JSON Patch application failed: {e}"))
-    })?;
+    json_patch::patch(&mut doc, &patch)
+        .map_err(|e| Error::Other(format!("JSON Patch application failed: {e}")))?;
 
     Ok(from_json(doc))
 }
@@ -335,12 +331,8 @@ fn strategic_merge_inner(
                             let mut found = false;
                             for base_elem in result.iter_mut() {
                                 if base_elem.get(field) == Some(over_kv) {
-                                    *base_elem = strategic_merge_inner(
-                                        base_elem,
-                                        over_elem,
-                                        merge_keys,
-                                        "",
-                                    );
+                                    *base_elem =
+                                        strategic_merge_inner(base_elem, over_elem, merge_keys, "");
                                     found = true;
                                     break;
                                 }
@@ -378,12 +370,7 @@ pub fn three_way_merge(base: &Value, left: &Value, right: &Value) -> Result<Valu
     three_way_inner(base, left, right, "")
 }
 
-fn three_way_inner(
-    base: &Value,
-    left: &Value,
-    right: &Value,
-    path: &str,
-) -> Result<Value, Error> {
+fn three_way_inner(base: &Value, left: &Value, right: &Value, path: &str) -> Result<Value, Error> {
     match (base, left, right) {
         (Value::Map(bm), Value::Map(lm), Value::Map(rm)) => {
             // Collect all keys from all three maps
@@ -455,12 +442,9 @@ fn three_way_inner(
                                     result.insert(k.clone(), merged);
                                 }
                                 // Base didn't have it, both sides added maps
-                                (None, Some(lv), Some(rv))
-                                    if lv.is_map() && rv.is_map() =>
-                                {
+                                (None, Some(lv), Some(rv)) if lv.is_map() && rv.is_map() => {
                                     let empty = Value::empty_map();
-                                    let merged =
-                                        three_way_inner(&empty, lv, rv, &child_path)?;
+                                    let merged = three_way_inner(&empty, lv, rv, &child_path)?;
                                     result.insert(k.clone(), merged);
                                 }
                                 _ => {
@@ -519,34 +503,19 @@ mod tests {
 
     #[test]
     fn test_shallow_merge() {
-        let base = map(&[
-            ("a", Value::int(1)),
-            ("b", map(&[("x", Value::int(10))])),
-        ]);
-        let over = map(&[
-            ("b", map(&[("y", Value::int(20))])),
-            ("c", Value::int(3)),
-        ]);
+        let base = map(&[("a", Value::int(1)), ("b", map(&[("x", Value::int(10))]))]);
+        let over = map(&[("b", map(&[("y", Value::int(20))])), ("c", Value::int(3))]);
         let result = merge(&base, &over, Strategy::Shallow);
         // Shallow: "b" is replaced entirely (not recursed into)
         assert_eq!(result.get("a"), Some(&Value::int(1)));
-        assert_eq!(
-            result.get("b"),
-            Some(&map(&[("y", Value::int(20))]))
-        );
+        assert_eq!(result.get("b"), Some(&map(&[("y", Value::int(20))])));
         assert_eq!(result.get("c"), Some(&Value::int(3)));
     }
 
     #[test]
     fn test_deep_merge() {
-        let base = map(&[
-            ("a", Value::int(1)),
-            ("b", map(&[("x", Value::int(10))])),
-        ]);
-        let over = map(&[
-            ("b", map(&[("y", Value::int(20))])),
-            ("c", Value::int(3)),
-        ]);
+        let base = map(&[("a", Value::int(1)), ("b", map(&[("x", Value::int(10))]))]);
+        let over = map(&[("b", map(&[("y", Value::int(20))])), ("c", Value::int(3))]);
         let result = merge(&base, &over, Strategy::Deep);
         // Deep: "b" is recursively merged
         assert_eq!(result.get("a"), Some(&Value::int(1)));
@@ -567,7 +536,10 @@ mod tests {
 
     #[test]
     fn test_merge_stack() {
-        let global = map(&[("region", Value::string("us-east-1")), ("env", Value::string("prod"))]);
+        let global = map(&[
+            ("region", Value::string("us-east-1")),
+            ("env", Value::string("prod")),
+        ]);
         let tenant = map(&[("env", Value::string("staging"))]);
         let local = map(&[("debug", Value::bool(true))]);
         let result = merge_stack(&[global, tenant, local], Strategy::Shallow);
@@ -617,12 +589,10 @@ mod tests {
 
     #[test]
     fn test_flatten_unflatten_roundtrip() {
-        let original = map(&[
-            ("a", map(&[
-                ("b", Value::int(1)),
-                ("c", map(&[("d", Value::int(2))])),
-            ])),
-        ]);
+        let original = map(&[(
+            "a",
+            map(&[("b", Value::int(1)), ("c", map(&[("d", Value::int(2))]))]),
+        )]);
         let flat = flatten_keys(&original, ".");
         let restored = unflatten_keys(&flat, ".");
         assert_eq!(original, restored);
@@ -654,12 +624,8 @@ mod tests {
 
     #[test]
     fn test_rfc7396_nested() {
-        let base = map(&[
-            ("a", map(&[("x", Value::int(1)), ("y", Value::int(2))])),
-        ]);
-        let patch = map(&[
-            ("a", map(&[("y", Value::int(99)), ("z", Value::int(3))])),
-        ]);
+        let base = map(&[("a", map(&[("x", Value::int(1)), ("y", Value::int(2))]))]);
+        let patch = map(&[("a", map(&[("y", Value::int(99)), ("z", Value::int(3))]))]);
         let result = json_merge_patch(&base, &patch);
         let a = result.get("a").unwrap();
         assert_eq!(a.get("x"), Some(&Value::int(1)));
@@ -684,9 +650,7 @@ mod tests {
 
     #[test]
     fn test_rfc7396_nested_null() {
-        let base = map(&[
-            ("a", map(&[("x", Value::int(1)), ("y", Value::int(2))])),
-        ]);
+        let base = map(&[("a", map(&[("x", Value::int(1)), ("y", Value::int(2))]))]);
         let patch = map(&[("a", map(&[("x", Value::Null)]))]);
         let result = json_merge_patch(&base, &patch);
         let a = result.get("a").unwrap();
@@ -697,10 +661,8 @@ mod tests {
     // ── RFC 6902 JSON Patch (3 tests) ─────────────────────────────
 
     fn patch_op(op: &str, path: &str, value: Option<Value>) -> Value {
-        let mut pairs: Vec<(&str, Value)> = vec![
-            ("op", Value::string(op)),
-            ("path", Value::string(path)),
-        ];
+        let mut pairs: Vec<(&str, Value)> =
+            vec![("op", Value::string(op)), ("path", Value::string(path))];
         if let Some(v) = value {
             pairs.push(("value", v));
         }
@@ -740,32 +702,42 @@ mod tests {
         let base = map(&[(
             "containers",
             Value::array(vec![
-                map(&[("name", Value::string("web")), ("image", Value::string("nginx:1.0"))]),
-                map(&[("name", Value::string("sidecar")), ("image", Value::string("envoy:1.0"))]),
+                map(&[
+                    ("name", Value::string("web")),
+                    ("image", Value::string("nginx:1.0")),
+                ]),
+                map(&[
+                    ("name", Value::string("sidecar")),
+                    ("image", Value::string("envoy:1.0")),
+                ]),
             ]),
         )]);
         let over = map(&[(
             "containers",
-            Value::array(vec![
-                map(&[("name", Value::string("web")), ("image", Value::string("nginx:2.0"))]),
-            ]),
+            Value::array(vec![map(&[
+                ("name", Value::string("web")),
+                ("image", Value::string("nginx:2.0")),
+            ])]),
         )]);
         let merge_keys = vec![("containers".to_string(), "name".to_string())];
         let result = strategic_merge(&base, &over, &merge_keys);
         let containers = result.get("containers").unwrap().as_array().unwrap();
         assert_eq!(containers.len(), 2);
         // "web" container should be updated
-        assert_eq!(containers[0].get("image"), Some(&Value::string("nginx:2.0")));
+        assert_eq!(
+            containers[0].get("image"),
+            Some(&Value::string("nginx:2.0"))
+        );
         // "sidecar" should be unchanged
-        assert_eq!(containers[1].get("image"), Some(&Value::string("envoy:1.0")));
+        assert_eq!(
+            containers[1].get("image"),
+            Some(&Value::string("envoy:1.0"))
+        );
     }
 
     #[test]
     fn test_strategic_merge_without_merge_key_replaces_array() {
-        let base = map(&[(
-            "args",
-            Value::array(vec![Value::string("--port=8080")]),
-        )]);
+        let base = map(&[("args", Value::array(vec![Value::string("--port=8080")]))]);
         let over = map(&[(
             "args",
             Value::array(vec![Value::string("--port=9090"), Value::string("--debug")]),
@@ -781,17 +753,14 @@ mod tests {
 
     #[test]
     fn test_strategic_merge_maps_recurse() {
-        let base = map(&[
-            ("spec", map(&[
+        let base = map(&[(
+            "spec",
+            map(&[
                 ("replicas", Value::int(3)),
                 ("selector", map(&[("app", Value::string("web"))])),
-            ])),
-        ]);
-        let over = map(&[
-            ("spec", map(&[
-                ("replicas", Value::int(5)),
-            ])),
-        ]);
+            ]),
+        )]);
+        let over = map(&[("spec", map(&[("replicas", Value::int(5))]))]);
         let merge_keys: Vec<(String, String)> = vec![];
         let result = strategic_merge(&base, &over, &merge_keys);
         let spec = result.get("spec").unwrap();
@@ -807,13 +776,7 @@ mod tests {
     fn test_strategic_merge_via_strategy_enum() {
         let base = map(&[("a", Value::int(1))]);
         let over = map(&[("b", Value::int(2))]);
-        let result = merge(
-            &base,
-            &over,
-            Strategy::Strategic {
-                merge_keys: vec![],
-            },
-        );
+        let result = merge(&base, &over, Strategy::Strategic { merge_keys: vec![] });
         assert_eq!(result.get("a"), Some(&Value::int(1)));
         assert_eq!(result.get("b"), Some(&Value::int(2)));
     }

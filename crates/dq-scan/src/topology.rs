@@ -8,9 +8,7 @@ use std::path::Path;
 
 use crate::argocd::{self, AppSetInfo};
 use crate::config::ScanConfig;
-use crate::discovery::{
-    DiscoveredFile, FileCategory, FileSystem, RealFileSystem,
-};
+use crate::discovery::{DiscoveredFile, FileCategory, FileSystem, RealFileSystem};
 use crate::environments::{self, ConfigPath, Taxonomy};
 use crate::helm::{self, ChartInfo};
 use crate::ScanError;
@@ -143,10 +141,7 @@ fn parse_appsets<F: FileSystem>(
                 // Log but don't fail on individual parse errors -- some files
                 // in ApplicationSet directories might not be valid ApplicationSets
                 // (e.g., README.md already filtered, but partial YAMLs can exist).
-                eprintln!(
-                    "warning: skipping {}: {e}",
-                    file.path.to_string_lossy()
-                );
+                eprintln!("warning: skipping {}: {e}", file.path.to_string_lossy());
             }
         }
     }
@@ -186,10 +181,7 @@ fn parse_charts<F: FileSystem>(
         match helm::parse_chart(&value, &chart_dir) {
             Ok(info) => charts.push(info),
             Err(e) => {
-                eprintln!(
-                    "warning: skipping {}: {e}",
-                    file.path.to_string_lossy()
-                );
+                eprintln!("warning: skipping {}: {e}", file.path.to_string_lossy());
             }
         }
     }
@@ -242,11 +234,7 @@ fn build_edges(appsets: &[AppSetInfo], charts: &[ChartInfo]) -> Vec<Edge> {
 /// (e.g., "saas/kubernetes/helm/saas"), and the chart_dir from Chart.yaml
 /// is also relative to root. We normalize both and compare.
 fn chart_path_matches(appset_chart_path: &str, chart_dir: &str) -> bool {
-    let normalize = |s: &str| {
-        s.trim_start_matches('/')
-            .trim_end_matches('/')
-            .to_string()
-    };
+    let normalize = |s: &str| s.trim_start_matches('/').trim_end_matches('/').to_string();
     normalize(appset_chart_path) == normalize(chart_dir)
 }
 
@@ -383,22 +371,30 @@ dependencies:
 
         assert_eq!(topo.charts.len(), 2);
 
-        let appset_to_chart = topo.edges.iter()
+        let appset_to_chart = topo
+            .edges
+            .iter()
             .filter(|e| matches!(e, Edge::AppSetToChart { .. }))
             .count();
         assert_eq!(appset_to_chart, 1);
 
-        let appset_to_vf = topo.edges.iter()
+        let appset_to_vf = topo
+            .edges
+            .iter()
             .filter(|e| matches!(e, Edge::AppSetToValueFile { .. }))
             .count();
         assert_eq!(appset_to_vf, 1);
 
-        let chart_dep = topo.edges.iter()
+        let chart_dep = topo
+            .edges
+            .iter()
             .filter(|e| matches!(e, Edge::ChartDependency { .. }))
             .count();
         assert_eq!(chart_dep, 1);
 
-        let edge = topo.edges.iter()
+        let edge = topo
+            .edges
+            .iter()
             .find(|e| matches!(e, Edge::AppSetToChart { .. }))
             .unwrap();
         match edge {
@@ -466,7 +462,9 @@ spec:
         let result = build_topology_with_fs(&fs, &root, &config).unwrap();
         let topo = &result.topology;
 
-        let vf_edges: Vec<_> = topo.edges.iter()
+        let vf_edges: Vec<_> = topo
+            .edges
+            .iter()
             .filter(|e| matches!(e, Edge::AppSetToValueFile { .. }))
             .collect();
         assert_eq!(vf_edges.len(), 2);
@@ -480,7 +478,8 @@ spec:
             }
         }
 
-        let paths: Vec<_> = vf_edges.iter()
+        let paths: Vec<_> = vf_edges
+            .iter()
             .map(|e| match e {
                 Edge::AppSetToValueFile { path, .. } => path.as_str(),
                 _ => unreachable!(),

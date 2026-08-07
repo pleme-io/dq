@@ -21,7 +21,13 @@ const MAX_DEPLOY_CHARTS: usize = 30;
 /// Mermaid node IDs must be alphanumeric + underscores only.
 fn sanitize_id(name: &str) -> String {
     name.chars()
-        .map(|c| if c.is_ascii_alphanumeric() || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 
@@ -267,8 +273,15 @@ fn emit_chart_node(
             // Recurse
             if included.contains(child) {
                 emit_chart_node(
-                    out, edges, emitted, visited, child,
-                    parent_to_children, chart_map, topology, included,
+                    out,
+                    edges,
+                    emitted,
+                    visited,
+                    child,
+                    parent_to_children,
+                    chart_map,
+                    topology,
+                    included,
                 );
             }
         }
@@ -331,15 +344,16 @@ pub fn deploy_graph(topology: &Topology) -> String {
     }
 
     // If too many charts, keep only the most connected
-    let charts_to_show: Vec<(&str, &Vec<(&str, String)>)> = if chart_to_appsets.len() > MAX_DEPLOY_CHARTS {
-        let mut by_count: Vec<(&str, &Vec<(&str, String)>)> =
-            chart_to_appsets.iter().map(|(k, v)| (*k, v)).collect();
-        by_count.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
-        by_count.truncate(MAX_DEPLOY_CHARTS);
-        by_count
-    } else {
-        chart_to_appsets.iter().map(|(k, v)| (*k, v)).collect()
-    };
+    let charts_to_show: Vec<(&str, &Vec<(&str, String)>)> =
+        if chart_to_appsets.len() > MAX_DEPLOY_CHARTS {
+            let mut by_count: Vec<(&str, &Vec<(&str, String)>)> =
+                chart_to_appsets.iter().map(|(k, v)| (*k, v)).collect();
+            by_count.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+            by_count.truncate(MAX_DEPLOY_CHARTS);
+            by_count
+        } else {
+            chart_to_appsets.iter().map(|(k, v)| (*k, v)).collect()
+        };
 
     let truncated = chart_to_appsets.len() > MAX_DEPLOY_CHARTS;
 
@@ -380,10 +394,7 @@ pub fn deploy_graph(topology: &Topology) -> String {
                 continue;
             }
             let node_id = format!("appset_{}", sanitize_id(appset_name));
-            out.push_str(&format!(
-                "        {}[\"{}\"]\n",
-                node_id, appset_name
-            ));
+            out.push_str(&format!("        {}[\"{}\"]\n", node_id, appset_name));
 
             if let Some(&(fill, fg)) = color_map.get(gen_type.as_str()) {
                 style_directives.push(format!(
@@ -463,13 +474,21 @@ pub fn matrix(topology: &Topology) -> String {
     // Collect counts: (tenant, environment) -> count
     let mut counts: BTreeMap<(&str, &str), usize> = BTreeMap::new();
     for cp in &topology.config_paths {
-        *counts
-            .entry((&cp.tenant, &cp.environment))
-            .or_insert(0) += 1;
+        *counts.entry((&cp.tenant, &cp.environment)).or_insert(0) += 1;
     }
 
-    let tenants: BTreeSet<&str> = topology.taxonomy.tenants.iter().map(|s| s.as_str()).collect();
-    let envs: BTreeSet<&str> = topology.taxonomy.environments.iter().map(|s| s.as_str()).collect();
+    let tenants: BTreeSet<&str> = topology
+        .taxonomy
+        .tenants
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
+    let envs: BTreeSet<&str> = topology
+        .taxonomy
+        .environments
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
 
     if tenants.is_empty() || envs.is_empty() {
         out.push_str("No environment data available.\n");

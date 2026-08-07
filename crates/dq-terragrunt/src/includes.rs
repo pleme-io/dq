@@ -39,7 +39,8 @@ fn resolve_include_recursive(
     paths: &mut Vec<PathBuf>,
     visited: &mut HashSet<PathBuf>,
 ) -> Result<(), Error> {
-    let canonical = current.canonicalize()
+    let canonical = current
+        .canonicalize()
         .map_err(|e| Error::Parse(format!("canonicalize {}: {e}", current.display())))?;
 
     if !visited.insert(canonical.clone()) {
@@ -77,7 +78,9 @@ pub fn merge_include_chain(chain: &IncludeChain) -> Value {
     let mut result = reversed[0].raw.clone();
     for config in &reversed[1..] {
         // Determine merge strategy from this config's includes
-        let strategy = config.includes.values()
+        let strategy = config
+            .includes
+            .values()
             .next()
             .map(|inc| match inc.merge_strategy {
                 MergeStrategy::Shallow => Strategy::Shallow,
@@ -115,14 +118,22 @@ mod tests {
         std::fs::create_dir_all(&child_dir).unwrap();
 
         // Root config with no includes
-        write_hcl(root, "terragrunt.hcl", r#"
+        write_hcl(
+            root,
+            "terragrunt.hcl",
+            r#"
 locals {
   project = "myproject"
 }
-"#);
+"#,
+        );
 
         // Child config that includes the root
-        write_hcl(&child_dir, "terragrunt.hcl", &format!(r#"
+        write_hcl(
+            &child_dir,
+            "terragrunt.hcl",
+            &format!(
+                r#"
 include "root" {{
   path = "{}"
 }}
@@ -130,7 +141,12 @@ include "root" {{
 locals {{
   env = "prod"
 }}
-"#, root.join("terragrunt.hcl").to_string_lossy().replace('\\', "/")));
+"#,
+                root.join("terragrunt.hcl")
+                    .to_string_lossy()
+                    .replace('\\', "/")
+            ),
+        );
 
         let chain = resolve_include_chain(&child_dir.join("terragrunt.hcl")).unwrap();
         assert_eq!(chain.configs.len(), 2);
@@ -151,18 +167,38 @@ locals {{
         std::fs::create_dir_all(&b_dir).unwrap();
 
         // A includes B
-        write_hcl(&a_dir, "terragrunt.hcl", &format!(r#"
+        write_hcl(
+            &a_dir,
+            "terragrunt.hcl",
+            &format!(
+                r#"
 include "b" {{
   path = "{}"
 }}
-"#, b_dir.join("terragrunt.hcl").to_string_lossy().replace('\\', "/")));
+"#,
+                b_dir
+                    .join("terragrunt.hcl")
+                    .to_string_lossy()
+                    .replace('\\', "/")
+            ),
+        );
 
         // B includes A (creates a cycle)
-        write_hcl(&b_dir, "terragrunt.hcl", &format!(r#"
+        write_hcl(
+            &b_dir,
+            "terragrunt.hcl",
+            &format!(
+                r#"
 include "a" {{
   path = "{}"
 }}
-"#, a_dir.join("terragrunt.hcl").to_string_lossy().replace('\\', "/")));
+"#,
+                a_dir
+                    .join("terragrunt.hcl")
+                    .to_string_lossy()
+                    .replace('\\', "/")
+            ),
+        );
 
         let result = resolve_include_chain(&a_dir.join("terragrunt.hcl"));
         assert!(result.is_err());
@@ -178,15 +214,23 @@ include "a" {{
         std::fs::create_dir_all(&child_dir).unwrap();
 
         // Root config
-        write_hcl(root, "terragrunt.hcl", r#"
+        write_hcl(
+            root,
+            "terragrunt.hcl",
+            r#"
 inputs = {
   base_key = "from_root"
   shared   = "root_value"
 }
-"#);
+"#,
+        );
 
         // Child config with deep merge strategy
-        write_hcl(&child_dir, "terragrunt.hcl", &format!(r#"
+        write_hcl(
+            &child_dir,
+            "terragrunt.hcl",
+            &format!(
+                r#"
 include "root" {{
   path           = "{}"
   merge_strategy = "deep"
@@ -196,7 +240,12 @@ inputs = {{
   child_key = "from_child"
   shared    = "child_value"
 }}
-"#, root.join("terragrunt.hcl").to_string_lossy().replace('\\', "/")));
+"#,
+                root.join("terragrunt.hcl")
+                    .to_string_lossy()
+                    .replace('\\', "/")
+            ),
+        );
 
         let chain = resolve_include_chain(&child_dir.join("terragrunt.hcl")).unwrap();
         let merged = merge_include_chain(&chain);

@@ -67,13 +67,27 @@ pub struct Block {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 impl Value {
-    pub fn null() -> Self { Value::Null }
-    pub fn bool(v: bool) -> Self { Value::Bool(v) }
-    pub fn int(v: i64) -> Self { Value::Int(v) }
-    pub fn float(v: f64) -> Self { Value::Float(v) }
-    pub fn string(s: impl AsRef<str>) -> Self { Value::String(Arc::from(s.as_ref())) }
-    pub fn bytes(b: impl Into<Arc<[u8]>>) -> Self { Value::Bytes(b.into()) }
-    pub fn datetime(s: impl AsRef<str>) -> Self { Value::Datetime(Arc::from(s.as_ref())) }
+    pub fn null() -> Self {
+        Value::Null
+    }
+    pub fn bool(v: bool) -> Self {
+        Value::Bool(v)
+    }
+    pub fn int(v: i64) -> Self {
+        Value::Int(v)
+    }
+    pub fn float(v: f64) -> Self {
+        Value::Float(v)
+    }
+    pub fn string(s: impl AsRef<str>) -> Self {
+        Value::String(Arc::from(s.as_ref()))
+    }
+    pub fn bytes(b: impl Into<Arc<[u8]>>) -> Self {
+        Value::Bytes(b.into())
+    }
+    pub fn datetime(s: impl AsRef<str>) -> Self {
+        Value::Datetime(Arc::from(s.as_ref()))
+    }
 
     pub fn array(v: impl Into<Vec<Value>>) -> Self {
         Value::Array(Arc::new(v.into()))
@@ -90,7 +104,8 @@ impl Value {
 
     /// Build a map from key-value pairs.
     pub fn from_pairs(pairs: impl IntoIterator<Item = (impl AsRef<str>, Value)>) -> Self {
-        let map: IndexMap<Arc<str>, Value> = pairs.into_iter()
+        let map: IndexMap<Arc<str>, Value> = pairs
+            .into_iter()
             .map(|(k, v)| (Arc::from(k.as_ref()), v))
             .collect();
         Value::Map(Arc::new(map))
@@ -114,17 +129,39 @@ impl Value {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 impl Value {
-    pub fn is_null(&self) -> bool { matches!(self, Value::Null) }
-    pub fn is_bool(&self) -> bool { matches!(self, Value::Bool(_)) }
-    pub fn is_int(&self) -> bool { matches!(self, Value::Int(_)) }
-    pub fn is_float(&self) -> bool { matches!(self, Value::Float(_)) }
-    pub fn is_number(&self) -> bool { matches!(self, Value::Int(_) | Value::Float(_)) }
-    pub fn is_string(&self) -> bool { matches!(self, Value::String(_)) }
-    pub fn is_array(&self) -> bool { matches!(self, Value::Array(_)) }
-    pub fn is_map(&self) -> bool { matches!(self, Value::Map(_)) }
-    pub fn is_block(&self) -> bool { matches!(self, Value::Block(_)) }
-    pub fn is_bytes(&self) -> bool { matches!(self, Value::Bytes(_)) }
-    pub fn is_datetime(&self) -> bool { matches!(self, Value::Datetime(_)) }
+    pub fn is_null(&self) -> bool {
+        matches!(self, Value::Null)
+    }
+    pub fn is_bool(&self) -> bool {
+        matches!(self, Value::Bool(_))
+    }
+    pub fn is_int(&self) -> bool {
+        matches!(self, Value::Int(_))
+    }
+    pub fn is_float(&self) -> bool {
+        matches!(self, Value::Float(_))
+    }
+    pub fn is_number(&self) -> bool {
+        matches!(self, Value::Int(_) | Value::Float(_))
+    }
+    pub fn is_string(&self) -> bool {
+        matches!(self, Value::String(_))
+    }
+    pub fn is_array(&self) -> bool {
+        matches!(self, Value::Array(_))
+    }
+    pub fn is_map(&self) -> bool {
+        matches!(self, Value::Map(_))
+    }
+    pub fn is_block(&self) -> bool {
+        matches!(self, Value::Block(_))
+    }
+    pub fn is_bytes(&self) -> bool {
+        matches!(self, Value::Bytes(_))
+    }
+    pub fn is_datetime(&self) -> bool {
+        matches!(self, Value::Datetime(_))
+    }
 
     /// jq-compatible type name.
     pub fn type_name(&self) -> &'static str {
@@ -148,10 +185,16 @@ impl Value {
 
 impl Value {
     pub fn as_bool(&self) -> Option<bool> {
-        match self { Value::Bool(b) => Some(*b), _ => None }
+        match self {
+            Value::Bool(b) => Some(*b),
+            _ => None,
+        }
     }
     pub fn as_i64(&self) -> Option<i64> {
-        match self { Value::Int(n) => Some(*n), _ => None }
+        match self {
+            Value::Int(n) => Some(*n),
+            _ => None,
+        }
     }
     pub fn as_f64(&self) -> Option<f64> {
         match self {
@@ -167,13 +210,22 @@ impl Value {
         }
     }
     pub fn as_array(&self) -> Option<&[Value]> {
-        match self { Value::Array(a) => Some(a), _ => None }
+        match self {
+            Value::Array(a) => Some(a),
+            _ => None,
+        }
     }
     pub fn as_map(&self) -> Option<&IndexMap<Arc<str>, Value>> {
-        match self { Value::Map(m) => Some(m), _ => None }
+        match self {
+            Value::Map(m) => Some(m),
+            _ => None,
+        }
     }
     pub fn as_block(&self) -> Option<&Block> {
-        match self { Value::Block(b) => Some(b), _ => None }
+        match self {
+            Value::Block(b) => Some(b),
+            _ => None,
+        }
     }
 
     /// Index by key (works on Map and Block body).
@@ -187,17 +239,26 @@ impl Value {
 
     /// Index by position (works on Array).
     pub fn get_index(&self, idx: usize) -> Option<&Value> {
-        match self { Value::Array(a) => a.get(idx), _ => None }
+        match self {
+            Value::Array(a) => a.get(idx),
+            _ => None,
+        }
     }
 
     /// Dot-path navigation: `"spec.template.metadata.name"`.
     /// Handles both map keys and array indices.
     pub fn select(&self, path: &str) -> Option<&Value> {
-        if path.is_empty() { return Some(self); }
+        if path.is_empty() {
+            return Some(self);
+        }
         let mut current = self;
         for segment in path.split('.') {
-            current = current.get(segment)
-                .or_else(|| segment.parse::<usize>().ok().and_then(|i| current.get_index(i)))?;
+            current = current.get(segment).or_else(|| {
+                segment
+                    .parse::<usize>()
+                    .ok()
+                    .and_then(|i| current.get_index(i))
+            })?;
         }
         Some(current)
     }
@@ -214,7 +275,9 @@ impl Value {
         }
     }
 
-    pub fn is_empty(&self) -> bool { self.len() == 0 }
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 
     /// Keys of a map or block body (empty vec for other types).
     pub fn keys(&self) -> Vec<&str> {
@@ -285,13 +348,16 @@ impl Value {
         match self {
             Value::Array(a) => Value::array(a.iter().map(|v| v.map_leaves(f)).collect::<Vec<_>>()),
             Value::Map(m) => {
-                let mapped: IndexMap<Arc<str>, Value> = m.iter()
+                let mapped: IndexMap<Arc<str>, Value> = m
+                    .iter()
                     .map(|(k, v)| (k.clone(), v.map_leaves(f)))
                     .collect();
                 Value::Map(Arc::new(mapped))
             }
             Value::Block(b) => {
-                let mapped: IndexMap<Arc<str>, Value> = b.body.iter()
+                let mapped: IndexMap<Arc<str>, Value> = b
+                    .body
+                    .iter()
                     .map(|(k, v)| (k.clone(), v.map_leaves(f)))
                     .collect();
                 Value::Block(Block {
@@ -317,11 +383,23 @@ fn flatten_into(arr: &[Value], out: &mut Vec<Value>) {
 fn find_blocks_recursive<'a>(val: &'a Value, block_type: &str, out: &mut Vec<&'a Block>) {
     match val {
         Value::Block(b) => {
-            if b.block_type.as_ref() == block_type { out.push(b); }
-            for v in b.body.values() { find_blocks_recursive(v, block_type, out); }
+            if b.block_type.as_ref() == block_type {
+                out.push(b);
+            }
+            for v in b.body.values() {
+                find_blocks_recursive(v, block_type, out);
+            }
         }
-        Value::Map(m) => { for v in m.values() { find_blocks_recursive(v, block_type, out); } }
-        Value::Array(a) => { for v in a.iter() { find_blocks_recursive(v, block_type, out); } }
+        Value::Map(m) => {
+            for v in m.values() {
+                find_blocks_recursive(v, block_type, out);
+            }
+        }
+        Value::Array(a) => {
+            for v in a.iter() {
+                find_blocks_recursive(v, block_type, out);
+            }
+        }
         _ => {}
     }
 }
@@ -330,14 +408,46 @@ fn find_blocks_recursive<'a>(val: &'a Value, block_type: &str, out: &mut Vec<&'a
 // From/Into Conversions
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-impl From<bool> for Value { fn from(v: bool) -> Self { Value::Bool(v) } }
-impl From<i64> for Value { fn from(v: i64) -> Self { Value::Int(v) } }
-impl From<i32> for Value { fn from(v: i32) -> Self { Value::Int(v as i64) } }
-impl From<f64> for Value { fn from(v: f64) -> Self { Value::Float(v) } }
-impl From<&str> for Value { fn from(v: &str) -> Self { Value::String(Arc::from(v)) } }
-impl From<String> for Value { fn from(v: String) -> Self { Value::String(Arc::from(v.as_str())) } }
-impl From<Vec<Value>> for Value { fn from(v: Vec<Value>) -> Self { Value::Array(Arc::new(v)) } }
-impl From<IndexMap<Arc<str>, Value>> for Value { fn from(m: IndexMap<Arc<str>, Value>) -> Self { Value::Map(Arc::new(m)) } }
+impl From<bool> for Value {
+    fn from(v: bool) -> Self {
+        Value::Bool(v)
+    }
+}
+impl From<i64> for Value {
+    fn from(v: i64) -> Self {
+        Value::Int(v)
+    }
+}
+impl From<i32> for Value {
+    fn from(v: i32) -> Self {
+        Value::Int(v as i64)
+    }
+}
+impl From<f64> for Value {
+    fn from(v: f64) -> Self {
+        Value::Float(v)
+    }
+}
+impl From<&str> for Value {
+    fn from(v: &str) -> Self {
+        Value::String(Arc::from(v))
+    }
+}
+impl From<String> for Value {
+    fn from(v: String) -> Self {
+        Value::String(Arc::from(v.as_str()))
+    }
+}
+impl From<Vec<Value>> for Value {
+    fn from(v: Vec<Value>) -> Self {
+        Value::Array(Arc::new(v))
+    }
+}
+impl From<IndexMap<Arc<str>, Value>> for Value {
+    fn from(m: IndexMap<Arc<str>, Value>) -> Self {
+        Value::Map(Arc::new(m))
+    }
+}
 
 /// Lossless conversion from serde_json::Value.
 impl From<serde_json::Value> for Value {
@@ -346,16 +456,22 @@ impl From<serde_json::Value> for Value {
             serde_json::Value::Null => Value::Null,
             serde_json::Value::Bool(b) => Value::Bool(b),
             serde_json::Value::Number(n) => {
-                if let Some(i) = n.as_i64() { Value::Int(i) }
-                else if let Some(f) = n.as_f64() { Value::Float(f) }
-                else { Value::string(n.to_string()) }
+                if let Some(i) = n.as_i64() {
+                    Value::Int(i)
+                } else if let Some(f) = n.as_f64() {
+                    Value::Float(f)
+                } else {
+                    Value::string(n.to_string())
+                }
             }
             serde_json::Value::String(s) => Value::String(Arc::from(s.as_str())),
-            serde_json::Value::Array(a) => Value::Array(Arc::new(
-                a.into_iter().map(Value::from).collect()
-            )),
+            serde_json::Value::Array(a) => {
+                Value::Array(Arc::new(a.into_iter().map(Value::from).collect()))
+            }
             serde_json::Value::Object(m) => Value::Map(Arc::new(
-                m.into_iter().map(|(k, v)| (Arc::from(k.as_str()), Value::from(v))).collect()
+                m.into_iter()
+                    .map(|(k, v)| (Arc::from(k.as_str()), Value::from(v)))
+                    .collect(),
             )),
         }
     }
@@ -376,21 +492,34 @@ impl From<&Value> for serde_json::Value {
             Value::String(s) | Value::Datetime(s) => serde_json::Value::String(s.to_string()),
             Value::Bytes(b) => {
                 use base64::Engine;
-                serde_json::Value::String(base64::engine::general_purpose::STANDARD.encode(b.as_ref()))
+                serde_json::Value::String(
+                    base64::engine::general_purpose::STANDARD.encode(b.as_ref()),
+                )
             }
-            Value::Array(a) => serde_json::Value::Array(
-                a.iter().map(serde_json::Value::from).collect()
-            ),
+            Value::Array(a) => {
+                serde_json::Value::Array(a.iter().map(serde_json::Value::from).collect())
+            }
             Value::Map(m) => serde_json::Value::Object(
-                m.iter().map(|(k, v)| (k.to_string(), serde_json::Value::from(v))).collect()
+                m.iter()
+                    .map(|(k, v)| (k.to_string(), serde_json::Value::from(v)))
+                    .collect(),
             ),
             Value::Block(b) => {
                 let mut obj = serde_json::Map::new();
-                obj.insert("__block_type".into(), serde_json::Value::String(b.block_type.to_string()));
+                obj.insert(
+                    "__block_type".into(),
+                    serde_json::Value::String(b.block_type.to_string()),
+                );
                 if !b.labels.is_empty() {
-                    obj.insert("__labels".into(), serde_json::Value::Array(
-                        b.labels.iter().map(|l| serde_json::Value::String(l.to_string())).collect()
-                    ));
+                    obj.insert(
+                        "__labels".into(),
+                        serde_json::Value::Array(
+                            b.labels
+                                .iter()
+                                .map(|l| serde_json::Value::String(l.to_string()))
+                                .collect(),
+                        ),
+                    );
                 }
                 for (k, v) in b.body.iter() {
                     obj.insert(k.to_string(), serde_json::Value::from(v));
@@ -412,19 +541,28 @@ impl fmt::Display for Value {
             Value::Bool(b) => write!(f, "{b}"),
             Value::Int(n) => write!(f, "{n}"),
             Value::Float(n) => {
-                if n.fract() == 0.0 { write!(f, "{n:.1}") }
-                else { write!(f, "{n}") }
+                if n.fract() == 0.0 {
+                    write!(f, "{n:.1}")
+                } else {
+                    write!(f, "{n}")
+                }
             }
             Value::String(s) => write!(f, "{s}"),
             Value::Datetime(s) => write!(f, "{s}"),
             Value::Bytes(b) => write!(f, "<{} bytes>", b.len()),
             Value::Array(_) | Value::Map(_) => {
                 let json = serde_json::Value::from(self);
-                write!(f, "{}", serde_json::to_string_pretty(&json).unwrap_or_default())
+                write!(
+                    f,
+                    "{}",
+                    serde_json::to_string_pretty(&json).unwrap_or_default()
+                )
             }
             Value::Block(b) => {
                 write!(f, "{}", b.block_type)?;
-                for l in &b.labels { write!(f, " \"{l}\"")?; }
+                for l in &b.labels {
+                    write!(f, " \"{l}\"")?;
+                }
                 write!(f, " {{ ... }}")
             }
         }
@@ -494,13 +632,13 @@ mod tests {
 
     #[test]
     fn test_select_dot_path() {
-        let v = Value::from_pairs([
-            ("spec", Value::from_pairs([
-                ("template", Value::from_pairs([
-                    ("name", Value::string("web")),
-                ])),
-            ])),
-        ]);
+        let v = Value::from_pairs([(
+            "spec",
+            Value::from_pairs([(
+                "template",
+                Value::from_pairs([("name", Value::string("web"))]),
+            )]),
+        )]);
         assert_eq!(v.select("spec.template.name"), Some(&Value::string("web")));
         assert_eq!(v.select("spec.missing"), None);
         assert_eq!(v.select(""), Some(&v));
@@ -508,12 +646,10 @@ mod tests {
 
     #[test]
     fn test_select_with_array_index() {
-        let v = Value::from_pairs([
-            ("items", Value::array(vec![
-                Value::string("a"),
-                Value::string("b"),
-            ])),
-        ]);
+        let v = Value::from_pairs([(
+            "items",
+            Value::array(vec![Value::string("a"), Value::string("b")]),
+        )]);
         assert_eq!(v.select("items.0"), Some(&Value::string("a")));
         assert_eq!(v.select("items.1"), Some(&Value::string("b")));
     }
@@ -526,9 +662,15 @@ mod tests {
             Value::int(4),
         ]);
         let flat = nested.flatten();
-        assert_eq!(flat, Value::array(vec![
-            Value::int(1), Value::int(2), Value::int(3), Value::int(4),
-        ]));
+        assert_eq!(
+            flat,
+            Value::array(vec![
+                Value::int(1),
+                Value::int(2),
+                Value::int(3),
+                Value::int(4),
+            ])
+        );
     }
 
     #[test]
@@ -539,18 +681,25 @@ mod tests {
     #[test]
     fn test_find_blocks() {
         let v = Value::from_pairs([
-            ("dependency", Value::block("dependency", ["vpc"], {
-                let mut m = IndexMap::new();
-                m.insert(Arc::from("config_path"), Value::string("../vpc"));
-                m
-            })),
-            ("other", Value::from_pairs([
-                ("dependency", Value::block("dependency", ["rds"], {
+            (
+                "dependency",
+                Value::block("dependency", ["vpc"], {
                     let mut m = IndexMap::new();
-                    m.insert(Arc::from("config_path"), Value::string("../rds"));
+                    m.insert(Arc::from("config_path"), Value::string("../vpc"));
                     m
-                })),
-            ])),
+                }),
+            ),
+            (
+                "other",
+                Value::from_pairs([(
+                    "dependency",
+                    Value::block("dependency", ["rds"], {
+                        let mut m = IndexMap::new();
+                        m.insert(Arc::from("config_path"), Value::string("../rds"));
+                        m
+                    }),
+                )]),
+            ),
         ]);
         let blocks = v.find_blocks("dependency");
         assert_eq!(blocks.len(), 2);
@@ -573,11 +722,9 @@ mod tests {
             ("x", Value::int(1)),
             ("y", Value::from_pairs([("z", Value::int(2))])),
         ]);
-        let doubled = v.map_leaves(&|leaf| {
-            match leaf {
-                Value::Int(n) => Value::int(n * 2),
-                other => other.clone(),
-            }
+        let doubled = v.map_leaves(&|leaf| match leaf {
+            Value::Int(n) => Value::int(n * 2),
+            other => other.clone(),
         });
         assert_eq!(doubled.select("x"), Some(&Value::int(2)));
         assert_eq!(doubled.select("y.z"), Some(&Value::int(4)));
@@ -610,7 +757,10 @@ mod tests {
             ("name", Value::string("test")),
             ("count", Value::int(42)),
             ("enabled", Value::bool(true)),
-            ("tags", Value::array(vec![Value::string("a"), Value::string("b")])),
+            (
+                "tags",
+                Value::array(vec![Value::string("a"), Value::string("b")]),
+            ),
         ]);
         let json = serde_json::Value::from(&original);
         let back = Value::from(json);

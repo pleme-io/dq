@@ -62,15 +62,13 @@ pub fn generate_from_topology(topology: &Topology, output_dir: &Path) -> Result<
 /// This is the main entry point: it runs the scan pipeline internally
 /// and then generates HTML output.
 pub fn generate_all(root: &Path, output_dir: &Path) -> Result<Vec<String>> {
-    let result = dq_scan::scan_directory(root)
-        .map_err(|e| anyhow::anyhow!("{e}"))?;
+    let result = dq_scan::scan_directory(root).map_err(|e| anyhow::anyhow!("{e}"))?;
     generate_from_topology(&result.topology, output_dir)
 }
 
 /// Generate all visualizations as GitHub-friendly Markdown with Mermaid diagrams.
 pub fn generate_all_mermaid(root: &Path, output_dir: &Path) -> Result<Vec<String>> {
-    let result = dq_scan::scan_directory(root)
-        .map_err(|e| anyhow::anyhow!("{e}"))?;
+    let result = dq_scan::scan_directory(root).map_err(|e| anyhow::anyhow!("{e}"))?;
     generate_mermaid_from_topology(&result.topology, output_dir)
 }
 
@@ -78,7 +76,10 @@ pub fn generate_all_mermaid(root: &Path, output_dir: &Path) -> Result<Vec<String
 ///
 /// Writes Markdown files with embedded Mermaid diagrams into `output_dir`
 /// and returns the list of filenames generated.
-pub fn generate_mermaid_from_topology(topology: &Topology, output_dir: &Path) -> Result<Vec<String>> {
+pub fn generate_mermaid_from_topology(
+    topology: &Topology,
+    output_dir: &Path,
+) -> Result<Vec<String>> {
     std::fs::create_dir_all(output_dir)?;
     let mut generated = Vec::new();
 

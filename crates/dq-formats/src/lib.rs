@@ -3,13 +3,13 @@
 //! Bridges wire formats (JSON, YAML, TOML, HCL, CSV, MessagePack)
 //! to/from [`dq_core::Value`]. Each format module implements [`Format`].
 
-pub mod detect;
-pub mod json;
-pub mod yaml;
-pub mod toml_fmt;
-pub mod hcl;
 pub mod csv_fmt;
+pub mod detect;
+pub mod hcl;
+pub mod json;
 pub mod msgpack;
+pub mod toml_fmt;
+pub mod yaml;
 
 use dq_core::{Error, Value};
 
@@ -112,25 +112,40 @@ mod tests {
 
     #[test]
     fn detect_json_by_extension() {
-        assert_eq!(detect::detect_from_path("data.json"), Some(FormatKind::Json));
-        assert_eq!(detect::detect_from_path("events.jsonl"), Some(FormatKind::Json));
+        assert_eq!(
+            detect::detect_from_path("data.json"),
+            Some(FormatKind::Json)
+        );
+        assert_eq!(
+            detect::detect_from_path("events.jsonl"),
+            Some(FormatKind::Json)
+        );
     }
 
     #[test]
     fn detect_yaml_by_extension() {
-        assert_eq!(detect::detect_from_path("config.yaml"), Some(FormatKind::Yaml));
+        assert_eq!(
+            detect::detect_from_path("config.yaml"),
+            Some(FormatKind::Yaml)
+        );
         assert_eq!(detect::detect_from_path("data.yml"), Some(FormatKind::Yaml));
     }
 
     #[test]
     fn detect_toml_by_extension() {
-        assert_eq!(detect::detect_from_path("Cargo.toml"), Some(FormatKind::Toml));
+        assert_eq!(
+            detect::detect_from_path("Cargo.toml"),
+            Some(FormatKind::Toml)
+        );
     }
 
     #[test]
     fn detect_hcl_by_extension() {
         assert_eq!(detect::detect_from_path("main.tf"), Some(FormatKind::Hcl));
-        assert_eq!(detect::detect_from_path("terragrunt.hcl"), Some(FormatKind::Hcl));
+        assert_eq!(
+            detect::detect_from_path("terragrunt.hcl"),
+            Some(FormatKind::Hcl)
+        );
     }
 
     #[test]
@@ -210,14 +225,15 @@ mod tests {
     fn yaml_parse_nested() {
         let input = b"spec:\n  template:\n    name: web";
         let val = parse(FormatKind::Yaml, input).unwrap();
-        assert_eq!(val.select("spec.template.name"), Some(&Value::string("web")));
+        assert_eq!(
+            val.select("spec.template.name"),
+            Some(&Value::string("web"))
+        );
     }
 
     #[test]
     fn yaml_roundtrip() {
-        let val = Value::from_pairs([
-            ("items", Value::array(vec![Value::int(1), Value::int(2)])),
-        ]);
+        let val = Value::from_pairs([("items", Value::array(vec![Value::int(1), Value::int(2)]))]);
         let bytes = serialize(FormatKind::Yaml, &val).unwrap();
         let back = parse(FormatKind::Yaml, &bytes).unwrap();
         assert_eq!(val, back);
@@ -245,10 +261,7 @@ mod tests {
 
     #[test]
     fn toml_null_omission() {
-        let val = Value::from_pairs([
-            ("keep", Value::string("yes")),
-            ("drop", Value::Null),
-        ]);
+        let val = Value::from_pairs([("keep", Value::string("yes")), ("drop", Value::Null)]);
         let bytes = serialize(FormatKind::Toml, &val).unwrap();
         let text = std::str::from_utf8(&bytes).unwrap();
         assert!(text.contains("keep"));
@@ -294,10 +307,7 @@ mod tests {
 
     #[test]
     fn hcl_serialize_attributes() {
-        let val = Value::from_pairs([
-            ("name", Value::string("test")),
-            ("count", Value::int(42)),
-        ]);
+        let val = Value::from_pairs([("name", Value::string("test")), ("count", Value::int(42))]);
         let bytes = serialize(FormatKind::Hcl, &val).unwrap();
         let text = std::str::from_utf8(&bytes).unwrap();
         assert!(text.contains("name"));
@@ -306,13 +316,14 @@ mod tests {
 
     #[test]
     fn hcl_serialize_block() {
-        let val = Value::from_pairs([
-            ("resource", Value::block("resource", ["aws_instance", "web"], {
+        let val = Value::from_pairs([(
+            "resource",
+            Value::block("resource", ["aws_instance", "web"], {
                 let mut m = indexmap::IndexMap::new();
                 m.insert(std::sync::Arc::from("ami"), Value::string("ami-12345"));
                 m
-            })),
-        ]);
+            }),
+        )]);
         let bytes = serialize(FormatKind::Hcl, &val).unwrap();
         let text = std::str::from_utf8(&bytes).unwrap();
         assert!(text.contains("resource"));
@@ -369,10 +380,7 @@ mod tests {
 
     #[test]
     fn msgpack_roundtrip() {
-        let val = Value::from_pairs([
-            ("key", Value::string("value")),
-            ("num", Value::int(42)),
-        ]);
+        let val = Value::from_pairs([("key", Value::string("value")), ("num", Value::int(42))]);
         let bytes = serialize(FormatKind::MsgPack, &val).unwrap();
         let back = parse(FormatKind::MsgPack, &bytes).unwrap();
         assert_eq!(val, back);
@@ -384,7 +392,10 @@ mod tests {
         let bytes = serialize(FormatKind::MsgPack, &val).unwrap();
         // MsgPack is binary, first byte > 0x7F for map with string keys
         if bytes[0] > 0x7F {
-            assert_eq!(detect::detect_from_content(&bytes), Some(FormatKind::MsgPack));
+            assert_eq!(
+                detect::detect_from_content(&bytes),
+                Some(FormatKind::MsgPack)
+            );
         }
     }
 

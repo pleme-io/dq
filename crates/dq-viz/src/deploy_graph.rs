@@ -95,9 +95,7 @@ pub fn render(topology: &Topology) -> Result<String> {
         // Look up chart metadata
         let chart_info = topology.charts.iter().find(|c| c.name == *chart_name);
         let version = chart_info.map(|c| c.version.as_str()).unwrap_or("?");
-        let description = chart_info
-            .map(|c| c.description.as_str())
-            .unwrap_or("");
+        let description = chart_info.map(|c| c.description.as_str()).unwrap_or("");
 
         body.push_str("<div class=\"card\">\n");
         body.push_str(&format!(
@@ -114,10 +112,7 @@ pub fn render(topology: &Topology) -> Result<String> {
         body.push_str("  <div class=\"appset-list\">\n");
         for (appset_name, gen_type) in appsets {
             let (color, label) = generator_badge(gen_type);
-            let vf_count = appset_vf_count
-                .get(appset_name)
-                .copied()
-                .unwrap_or(0);
+            let vf_count = appset_vf_count.get(appset_name).copied().unwrap_or(0);
             let vf_badge = if vf_count > 0 {
                 format!(
                     " <span class=\"vf-count\" title=\"{vf_count} value file template(s)\">{vf_count} vf</span>"
@@ -137,7 +132,9 @@ pub fn render(topology: &Topology) -> Result<String> {
 
     // Unlinked appsets (no chart reference)
     if !unlinked_appsets.is_empty() {
-        body.push_str("<h2 style=\"margin-top:2rem;\">Unlinked ApplicationSets (no chart match)</h2>\n");
+        body.push_str(
+            "<h2 style=\"margin-top:2rem;\">Unlinked ApplicationSets (no chart match)</h2>\n",
+        );
         body.push_str("<div class=\"unlinked-list\">\n");
         for (name, gen_type) in &unlinked_appsets {
             let (color, label) = generator_badge(gen_type);

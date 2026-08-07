@@ -25,9 +25,7 @@ pub(crate) fn eval_native(input: &Value, expr: &str) -> Result<Vec<Value>, Error
             .collect();
         Ok(vec![Value::array(blocks)])
     } else {
-        Err(Error::Other(format!(
-            "unknown native filter: {expr}"
-        )))
+        Err(Error::Other(format!("unknown native filter: {expr}")))
     }
 }
 
@@ -46,16 +44,14 @@ mod tests {
 
     #[test]
     fn eval_find_blocks() {
-        let v = Value::from_pairs([
-            (
-                "dep",
-                Value::block("dependency", ["vpc"], {
-                    let mut m = IndexMap::new();
-                    m.insert(Arc::from("config_path"), Value::string("../vpc"));
-                    m
-                }),
-            ),
-        ]);
+        let v = Value::from_pairs([(
+            "dep",
+            Value::block("dependency", ["vpc"], {
+                let mut m = IndexMap::new();
+                m.insert(Arc::from("config_path"), Value::string("../vpc"));
+                m
+            }),
+        )]);
         let result = eval_native(&v, "find_blocks(\"dependency\")").unwrap();
         assert_eq!(result.len(), 1);
         let arr = result[0].as_array().unwrap();

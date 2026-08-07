@@ -194,7 +194,10 @@ fn topology_chart_dep_edges(topology: &Topology) -> BTreeSet<(String, String)> {
 
 fn format_diff(label: &str, only_a: &BTreeSet<(String, String)>, a_name: &str, b_name: &str) {
     if !only_a.is_empty() {
-        eprintln!("  {label}: {} edge(s) only in {a_name} (missing from {b_name}):", only_a.len());
+        eprintln!(
+            "  {label}: {} edge(s) only in {a_name} (missing from {b_name}):",
+            only_a.len()
+        );
         for (s, d) in only_a.iter().take(20) {
             eprintln!("    {s} -> {d}");
         }
@@ -288,9 +291,8 @@ pub fn run(digest_path: &Path, topology_path: &Path) -> Result<()> {
         })?;
 
     // Canonical topology → typed struct via serde_json.
-    let topology_file = std::fs::File::open(topology_path).with_context(|| {
-        format!("opening topology: {}", topology_path.display())
-    })?;
+    let topology_file = std::fs::File::open(topology_path)
+        .with_context(|| format!("opening topology: {}", topology_path.display()))?;
     let topology: Topology = serde_json::from_reader(topology_file)
         .with_context(|| format!("parsing topology: {}", topology_path.display()))?;
 
@@ -389,7 +391,9 @@ pub fn run(digest_path: &Path, topology_path: &Path) -> Result<()> {
                 eprintln!("  on-disk (Python): {recorded}");
                 eprintln!("  fresh    (Rust):  {topo_hash}");
                 eprintln!("\nThe two sides compute hashes over the same canonical pre-image.");
-                eprintln!("A mismatch here means the Python and Rust implementations have drifted.");
+                eprintln!(
+                    "A mismatch here means the Python and Rust implementations have drifted."
+                );
                 // Emit the Rust pre-image for debugging; diff against
                 // docs/repo-document/schema/projection.bytes on the
                 // Python side to see where the drift is.
@@ -442,10 +446,7 @@ mod tests {
                 ("appset_beta", "beta"),
                 ("chart_y", "y  v2.0"),
             ],
-            &[
-                ("appset_alpha", "chart_x"),
-                ("appset_beta", "chart_y"),
-            ],
+            &[("appset_alpha", "chart_x"), ("appset_beta", "chart_y")],
         );
         let got = diagram_appset_chart_edges(&d);
         let want: BTreeSet<_> = [

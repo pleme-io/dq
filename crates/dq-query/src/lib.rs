@@ -248,10 +248,7 @@ mod tests {
     fn test_to_entries() {
         let input = Value::from(json!({"a": 1}));
         let result = query(&input, "to_entries").unwrap();
-        assert_eq!(
-            result,
-            vec![Value::from(json!([{"key": "a", "value": 1}]))]
-        );
+        assert_eq!(result, vec![Value::from(json!([{"key": "a", "value": 1}]))]);
     }
 
     #[test]
