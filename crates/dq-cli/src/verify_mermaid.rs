@@ -2,8 +2,8 @@
 //!
 //! Flow:
 //!
-//! 1. A Python digester (e.g. the `repo-document` skill in
-//!    `akeylesslabs/akeyless-environments`) parses each Mermaid
+//! 1. A Python digester (e.g. a `repo-document` skill running in
+//!    the scanned GitOps repository) parses each Mermaid
 //!    flowchart diagram into `{diagrams: [{name, nodes, edges}]}`
 //!    and emits a canonical Lisp form.
 //!
