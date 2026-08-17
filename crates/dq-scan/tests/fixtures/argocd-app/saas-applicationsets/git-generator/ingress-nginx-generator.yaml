@@ -6,11 +6,11 @@ metadata:
 spec:
   generators:
     - git:
-        repoURL: git@github.com:akeylesslabs/akeyless-environments.git
+        repoURL: git@github.com:example-org/example-environments.git
         revision: master
         files:
-          - path: "environments/akeyless_global/**/AZR/argocd/**/config.json"
-          - path: "environments/cvs/staging/AZR/argocd/**/config.json"
+          - path: "environments/global/**/AZR/argocd/**/config.json"
+          - path: "environments/test_tenant/staging/AZR/argocd/**/config.json"
   template:
     metadata:
       name: 'ingress-nginx-{{cluster.name}}'
@@ -23,7 +23,7 @@ spec:
     spec:
       project: '{{project}}'
       source:
-        repoURL: git@github.com:akeylesslabs/akeyless-environments.git
+        repoURL: git@github.com:example-org/example-environments.git
         targetRevision: master
         path: saas/kubernetes/helm/ingress-nginx
         helm:

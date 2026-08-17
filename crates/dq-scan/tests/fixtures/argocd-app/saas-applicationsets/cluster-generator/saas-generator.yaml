@@ -14,7 +14,7 @@ spec:
               operator: Exists
             - key: tenant
               operator: NotIn
-              values: ["walmart"]
+              values: ["excluded-tenant"]
   template:
     metadata:
       name: '{{ normalize .name }}-v2'
@@ -27,7 +27,7 @@ spec:
     spec:
       project: '{{.metadata.labels.project}}'
       source:
-        repoURL: git@github.com:akeylesslabs/akeyless-environments.git
+        repoURL: git@github.com:example-org/example-environments.git
         targetRevision: master
         path: saas/kubernetes/helm/saas
         helm:
